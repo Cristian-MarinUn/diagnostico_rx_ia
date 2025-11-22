@@ -23,7 +23,12 @@
                 <li><a href="{% url 'core:home' %}" class="nav-link active">Inicio</a></li>
                 <li><a href="#" class="nav-link">Características</a></li>
                 <li><a href="#" class="nav-link">Acerca de</a></li>
-                <li><a href="#" class="btn btn-primary">Iniciar Sesión</a></li>
+                {% if user.is_authenticated %}
+                    <li class="nav-link">👤 {{ user.get_full_name }}</li>
+                    <li><a href="#" class="btn btn-secondary">Cerrar Sesión</a></li>
+                {% else %}
+                    <li><a href="{% url 'authentication:login' %}" class="btn btn-primary">Iniciar Sesión</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
