@@ -1,0 +1,67 @@
+<!-- ================================ -->
+<!-- ARCHIVO: core/templates/core/base.html -->
+<!-- ================================ -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Diagnóstico Asistido por IA{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <span class="logo">🏥</span>
+                <span class="brand-name">Diagnóstico IA</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="{% url 'core:home' %}" class="nav-link active">Inicio</a></li>
+                <li><a href="#" class="nav-link">Características</a></li>
+                <li><a href="#" class="nav-link">Acerca de</a></li>
+                <li><a href="#" class="btn btn-primary">Iniciar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Diagnóstico IA</h3>
+                    <p>Sistema de diagnóstico médico asistido por inteligencia artificial</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces</h4>
+                    <ul>
+                        <li><a href="#">Características</a></li>
+                        <li><a href="#">Documentación</a></li>
+                        <li><a href="#">Soporte</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>Universidad Nacional de Colombia</p>
+                    <p>Sede Medellín</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Diagnóstico Asistido por IA. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'core/js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

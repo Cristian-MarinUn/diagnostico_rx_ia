@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }} - Inicio{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">Diagnóstico Médico Asistido por Inteligencia Artificial</h1>
+            <p class="hero-subtitle">
+                Sistema avanzado para análisis de imágenes médicas con IA, 
+                brindando diagnósticos preliminares precisos y confiables.
+            </p>
+            <div class="hero-actions">
+                <a href="#" class="btn btn-primary btn-lg">Comenzar Ahora</a>
+                <a href="#features" class="btn btn-secondary btn-lg">Conocer Más</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="hero-illustration">
+                <div class="illustration-element">
+                    <span class="icon-large">🔬</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Características Principales</h2>
+            <p class="section-subtitle">
+                Tecnología de vanguardia para el diagnóstico médico
+            </p>
+        </div>
+        <div class="features-grid">
+            {% for feature in features %}
+            <div class="feature-card">
+                <div class="feature-icon">{{ feature.icon }}</div>
+                <h3 class="feature-title">{{ feature.title }}</h3>
+                <p class="feature-description">{{ feature.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">¿Cómo Funciona?</h2>
+            <p class="section-subtitle">Proceso simple y eficiente</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Cargar Imagen</h3>
+                <p class="step-description">Sube la imagen médica al sistema de forma segura</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Análisis IA</h3>
+                <p class="step-description">El motor de IA procesa y analiza la imagen</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3 class="step-title">Diagnóstico</h3>
+                <p class="step-description">Recibe el diagnóstico preliminar con nivel de confianza</p>
+            </div>
+            <div class="step-arrow">→</div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3 class="step-title">Validación</h3>
+                <p class="step-description">El médico revisa y valida los resultados</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">¿Listo para comenzar?</h2>
+            <p class="cta-subtitle">
+                Únete al futuro del diagnóstico médico asistido por IA
+            </p>
+            <a href="#" class="btn btn-light btn-lg">Iniciar Sesión</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
