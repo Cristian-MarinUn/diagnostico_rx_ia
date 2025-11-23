@@ -6,7 +6,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),
-    path('auth/', include('authentication.urls')),  # ← NUEVA RUTA
+    path('auth/', include('authentication.urls')),
+    path('users/', include('users.urls')),
 ]
 
 if settings.DEBUG:

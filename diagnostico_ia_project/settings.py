@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,7 +22,7 @@ INSTALLED_APPS = [
 
     'core',
     'authentication',
-
+    'users',
 
 
 
@@ -45,6 +43,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #NUEVOS
+    'authentication.middleware.SessionExpirationMiddleware',
 ]
 
 ROOT_URLCONF = 'diagnostico_ia_project.urls'
@@ -153,3 +153,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+# Email backend (for development, using console backend)
+# Configuración de Email (para desarrollo)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Para producción con Gmail (ejemplo):
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tu-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tu-contraseña-de-app'
+# DEFAULT_FROM_EMAIL = 'Sistema Diagnóstico IA <noreply@diagnostico-ia.com>'

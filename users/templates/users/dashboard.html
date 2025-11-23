@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="logo">LOGO</span>
+        </div>
+        <nav class="side-nav">
+            <ul>
+                <li><a href="#">Navigation 1</a></li>
+                <li><a href="#">Navigation 2</a></li>
+                <li><a href="{% url 'users:profile' %}">Crear nuevo usuario</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <section class="main-area">
+        <header class="page-header">
+            <h1>Bienvenido</h1>
+            <p>Has iniciado sesión {{ user.get_full_name }}, ({{ user.get_rol_display }})</p>
+        </header>
+
+        <div class="content-grid">
+            <!-- Aquí se pueden insertar tarjetas con estadísticas, actividad, etc. -->
+            <div class="card">
+                <h3>Resumen</h3>
+                <p>Inicios de sesión: <strong>{{ statistics.total_logins }}</strong></p>
+                <p>Sesiones activas: <strong>{{ statistics.active_sessions_count }}</strong></p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/dashboard.js' %}"></script>
+{% endblock %}
