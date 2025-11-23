@@ -24,11 +24,162 @@ User.objects.create_user(
     rol='MEDICO_RADIOLOGO'
 )
 
+User.objects.create_user(
+    email='medico1@hospital.com',
+    password='medico12345',
+    first_name='María',
+    last_name='García',
+    rol='MEDICO_RADIOLOGO'
+)
+
+User.objects.create_user(
+    email='medico2@hospital.com',
+    password='medico12345',
+    first_name='Andrés',
+    last_name='Ramírez',
+    rol='MEDICO_RADIOLOGO'
+)
+
+User.objects.create_user(
+    email='medico3@hospital.com',
+    password='medico12345',
+    first_name='Laura',
+    last_name='Pineda',
+    rol='MEDICO_RADIOLOGO'
+)
+
+User.objects.create_user(
+    email='medico4@hospital.com',
+    password='medico12345',
+    first_name='Julián',
+    last_name='Mendoza',
+    rol='MEDICO_RADIOLOGO'
+)
+
+User.objects.create_user(
+    email='medico5@hospital.com',
+    password='medico12345',
+    first_name='Sofía',
+    last_name='Cortés',
+    rol='MEDICO_RADIOLOGO'
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Técnico
 User.objects.create_user(
     email='tecnico@hospital.com',
     password='tecnico12345',
     first_name='Carlos',
     last_name='Rodríguez',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico6@hospital.com',
+    password='tecnico12345',
+    first_name='Diego',
+    last_name='Martínez',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico7@hospital.com',
+    password='tecnico12345',
+    first_name='Valentina',
+    last_name='Lagos',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico8@hospital.com',
+    password='tecnico12345',
+    first_name='Sebastián',
+    last_name='Cárdenas',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico9@hospital.com',
+    password='tecnico12345',
+    first_name='Natalia',
+    last_name='Bermúdez',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico10@hospital.com',
+    password='tecnico12345',
+    first_name='Ricardo',
+    last_name='Herrera',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico11@hospital.com',
+    password='tecnico12345',
+    first_name='Camila',
+    last_name='Torres',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico12@hospital.com',
+    password='tecnico12345',
+    first_name='Jorge',
+    last_name='Salazar',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico13@hospital.com',
+    password='tecnico12345',
+    first_name='Melissa',
+    last_name='Valencia',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico14@hospital.com',
+    password='tecnico12345',
+    first_name='Oscar',
+    last_name='Gallego',
+    rol='TECNICO_SALUD'
+)
+
+User.objects.create_user(
+    email='tecnico15@hospital.com',
+    password='tecnico12345',
+    first_name='Andrea',
+    last_name='Murillo',
     rol='TECNICO_SALUD'
 )
