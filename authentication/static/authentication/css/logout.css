@@ -1,0 +1,399 @@
+/* ================================ */
+/* ARCHIVO: authentication/static/authentication/css/logout.css */
+/* ================================ */
+
+/* Puedes incluir este CSS directamente en el template o crear un archivo separado */
+/* Si prefieres archivo separado, agrega en el block extra_css: */
+/* <link rel="stylesheet" href="{% static 'authentication/css/logout.css' %}"> */
+
+/* Container principal */
+.logout-container {
+    min-height: calc(100vh - var(--navbar-height) - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    position: relative;
+}
+
+/* Efectos de fondo */
+.logout-container::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+    top: -150px;
+    right: -150px;
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.logout-container::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    bottom: -100px;
+    left: -100px;
+    border-radius: 50%;
+    animation: float 10s ease-in-out infinite reverse;
+    pointer-events: none;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-30px) scale(1.05);
+    }
+}
+
+/* Card del logout */
+.logout-card {
+    width: 100%;
+    max-width: 540px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 2rem;
+    padding: 3rem 2.5rem;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 100px rgba(239, 68, 68, 0.1);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logout-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.05) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Icono del logout */
+.logout-icon {
+    font-size: 5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+    animation: pulse 2.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Título */
+.logout-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.03em;
+}
+
+/* Mensaje */
+.logout-message {
+    color: var(--text-secondary);
+    font-size: 1.0625rem;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+    font-weight: 500;
+}
+
+/* Info del usuario */
+.user-info {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 1.125rem;
+    margin-bottom: 2.5rem;
+    border: 1px solid var(--glass-border);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+}
+
+.user-info:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: var(--primary-color);
+}
+
+.user-info p {
+    margin: 0;
+    line-height: 1.8;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.user-info strong {
+    color: var(--primary-light);
+    font-weight: 700;
+    font-size: 1.0625rem;
+}
+
+/* Acciones del logout */
+.logout-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+.logout-actions form {
+    display: inline-block;
+}
+
+/* Botones */
+.btn {
+    padding: 1rem 2.25rem;
+    border-radius: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    letter-spacing: 0.025em;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Botón de confirmar logout (danger) */
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+}
+
+.btn-danger:active {
+    transform: translateY(-1px);
+}
+
+/* Botón de cancelar */
+.btn-secondary {
+    background: rgba(51, 65, 85, 0.8);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(71, 85, 105, 0.9);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary:active {
+    transform: translateY(-1px);
+}
+
+/* Estado de loading para los botones */
+.btn:disabled,
+.btn.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes spin {
+    to {
+        transform: translateY(-50%) rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .logout-container {
+        padding: 2rem 1rem;
+    }
+    
+    .logout-card {
+        padding: 2.5rem 1.75rem;
+    }
+    
+    .logout-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .logout-title {
+        font-size: 1.75rem;
+    }
+    
+    .logout-message {
+        font-size: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    
+    .user-info {
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+    }
+    
+    .user-info p {
+        font-size: 0.9375rem;
+    }
+    
+    .user-info strong {
+        font-size: 1rem;
+    }
+    
+    .logout-actions {
+        flex-direction: column;
+        gap: 0.875rem;
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 0.875rem 2rem;
+        font-size: 0.9375rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logout-card {
+        padding: 2rem 1.5rem;
+        border-radius: 1.5rem;
+    }
+    
+    .logout-icon {
+        font-size: 3.5rem;
+    }
+    
+    .logout-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .logout-message {
+        font-size: 0.9375rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Animación de confirmación */
+@keyframes confirmShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.btn-danger:active {
+    animation: confirmShake 0.5s ease-in-out;
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible para accesibilidad */
+.btn:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 3px;
+}
+
+/* Mejora visual para navegadores que soportan backdrop-filter */
+@supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+    .logout-card {
+        background: rgba(30, 41, 59, 0.75);
+    }
+    
+    .user-info {
+        background: rgba(15, 23, 42, 0.65);
+    }
+}

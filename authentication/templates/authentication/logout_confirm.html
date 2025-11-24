@@ -1,125 +1,22 @@
+<!-- ================================ -->
+<!-- ARCHIVO: authentication/templates/authentication/logout.html -->
+<!-- ================================ -->
 {% extends 'core/base.html' %}
 
 {% block title %}Cerrar Sesión - Diagnóstico IA{% endblock %}
 
 {% block extra_css %}
-<style>
-    .logout-container {
-        min-height: calc(100vh - 200px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem 0;
-    }
-    
-    .logout-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 500px;
-        padding: 3rem;
-        text-align: center;
-        animation: slideUp 0.4s ease-out;
-    }
-    
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .logout-icon {
-        font-size: 4rem;
-        margin-bottom: 1.5rem;
-        animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.1);
-        }
-    }
-    
-    .logout-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--dark-color);
-        margin-bottom: 1rem;
-    }
-    
-    .logout-message {
-        color: var(--gray-600);
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-        line-height: 1.6;
-    }
-    
-    .user-info {
-        background: var(--gray-100);
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
-    
-    .user-info strong {
-        color: var(--primary-color);
-    }
-    
-    .logout-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    .btn {
-        padding: 0.875rem 2rem;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        font-size: 1rem;
-    }
-    
-    .btn-danger {
-        background-color: var(--error-color);
-        color: white;
-    }
-    
-    .btn-danger:hover {
-        background-color: #b51a3a;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(214, 34, 70, 0.3);
-    }
-    
-    .btn-secondary {
-        background-color: var(--gray-300);
-        color: var(--dark-color);
-    }
-    
-    .btn-secondary:hover {
-        background-color: var(--gray-600);
-        color: white;
-    }
-</style>
+{% load static %}
+<link rel="stylesheet" href="{% static 'authentication/css/logout.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="logout-container">
     <div class="logout-card">
         <div class="logout-icon">🚪</div>
+        
         <h1 class="logout-title">¿Deseas cerrar sesión?</h1>
+        
         <p class="logout-message">
             Estás a punto de cerrar tu sesión. Deberás iniciar sesión nuevamente para acceder al sistema.
         </p>
@@ -132,14 +29,14 @@
         </div>
         
         <div class="logout-actions">
-            <form method="post" action="{% url 'authentication:logout' %}" style="display: inline;">
+            <form method="post" action="{% url 'authentication:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">
                     Sí, cerrar sesión
                 </button>
             </form>
             
-            <form method="post" action="{% url 'authentication:logout_cancel' %}" style="display: inline;">
+            <form method="post" action="{% url 'authentication:logout_cancel' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary">
                     Cancelar
@@ -148,4 +45,35 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script opcional para añadir confirmación adicional
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutForm = document.querySelector('form[action*="logout"]');
+    
+    if (logoutForm) {
+        const logoutBtn = logoutForm.querySelector('.btn-danger');
+        
+        logoutForm.addEventListener('submit', function(e) {
+            // Añadir clase de loading
+            logoutBtn.classList.add('loading');
+            logoutBtn.disabled = true;
+        });
+    }
+    
+    // Animación de entrada para los elementos
+    const elements = document.querySelectorAll('.logout-icon, .logout-title, .logout-message, .user-info, .logout-actions');
+    elements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            element.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
 {% endblock %}
