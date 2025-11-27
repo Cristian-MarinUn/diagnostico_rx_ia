@@ -112,6 +112,12 @@ class LoginView(View):
         else:
             request.session.set_expiry(86400)  # 24 horas
 
+        # Si el usuario debe cambiar la contraseña en el primer acceso,
+        # redirigirlo a la vista de cambio de contraseña antes del dashboard.
+        if getattr(user, 'must_change_password', False):
+            messages.info(request, 'Debes cambiar tu contraseña en el primer acceso.')
+            return redirect(reverse('users:change_password'))
+
         # Paso 21-23: Redirigir al dashboard según rol
         messages.success(
             request,

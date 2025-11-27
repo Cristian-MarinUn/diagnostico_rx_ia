@@ -7,6 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.paginator import Paginator
 from datetime import timedelta
 from authentication.models import User, Session, Log
 from django.utils.crypto import get_random_string
@@ -331,6 +335,28 @@ def admin_dashboard_view(request):
 
 
 @login_required
+def user_list_view(request):
+    """
+    Lista con todos los usuarios (vista para administradores).
+    Soporta paginación básica.
+    """
+    # Verificar permisos de administrador
+    if request.user.rol != 'ADMINISTRADOR':
+        messages.error(request, 'No tienes permisos de administrador.')
+        return redirect('users:user_dashboard')
+
+    users_qs = User.objects.all().order_by('-fecha_registro')
+    paginator = Paginator(users_qs, 25)  # 25 usuarios por página
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+
+    context = {
+        'users_list': users_page,
+    }
+    return render(request, 'users/user_list.html', context)
+
+
+@login_required
 def user_create_view(request):
     """
     Vista para crear un usuario desde el panel de administración.
@@ -367,8 +393,13 @@ def user_create_view(request):
                 'roles': roles,
             })
 
-        # Generar contraseña temporal
-        temp_password = get_random_string(10)
+        # Usar la identificación como contraseña temporal si está disponible
+        if identificacion:
+            temp_password = identificacion
+            must_change = True
+        else:
+            temp_password = get_random_string(10)
+            must_change = False
 
         try:
             user = User.objects.create_user(
@@ -379,9 +410,35 @@ def user_create_view(request):
                 identificacion=identificacion,
                 rol=rol,
                 estado=estado,
+                must_change_password=must_change,
             )
 
-            # Registrar log (opcional)
+            # Enviar email con contraseña temporal
+            try:
+                subject = 'Bienvenido al Sistema de Diagnóstico IA'
+                context = {
+                    'nombre': user.get_full_name(),
+                    'email': user.email,
+                    'password': temp_password,
+                    'rol': user.get_rol_display(),
+                }
+                html_message = render_to_string('emails/welcome_email.html', context)
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    subject=subject,
+                    message=plain_message,
+                    from_email='noreply@diagnostico-ia.com',
+                    recipient_list=[user.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                email_enviado = True
+            except Exception as email_error:
+                email_enviado = False
+                print(f"Error al enviar email: {email_error}")
+
+            # Registrar log
             Log.objects.create(
                 user=request.user,
                 accion='USER_CREATED',
@@ -389,7 +446,11 @@ def user_create_view(request):
                 descripcion=f'Usuario {user.get_full_name()} creado por {request.user.get_full_name()}',
             )
 
-            messages.success(request, f'Usuario creado correctamente. Contraseña temporal: {temp_password}')
+            if email_enviado:
+                messages.success(request, f'Usuario creado correctamente. Se envió un email con las credenciales a {user.email}')
+            else:
+                messages.warning(request, f'Usuario creado pero no se pudo enviar el email. Contraseña temporal: {temp_password}')
+            
             return redirect('users:admin_dashboard')
 
         except Exception as e:
@@ -413,43 +474,81 @@ def change_password_view(request):
     Vista para que los usuarios cambien su contraseña.
     """
     if request.method == 'POST':
+        # Si el usuario está forzado a cambiar contraseña, no pedimos la actual
+        if getattr(request.user, 'must_change_password', False):
+            new_password = request.POST.get('new_password', '').strip()
+            confirm_password = request.POST.get('confirm_password', '').strip()
+
+            if not new_password:
+                messages.error(request, 'Debes ingresar una nueva contraseña.')
+                return render(request, 'users/change_password.html')
+
+            if new_password != confirm_password:
+                messages.error(request, 'Las contraseñas no coinciden.')
+                return render(request, 'users/change_password.html')
+
+            if len(new_password) < 8:
+                messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+                return render(request, 'users/change_password.html')
+
+            try:
+                request.user.set_password(new_password)
+                # Desactivar la bandera de cambio obligatorio
+                request.user.must_change_password = False
+                request.user.save()
+
+                Log.objects.create(
+                    user=request.user,
+                    accion='PASSWORD_CHANGE',
+                    nivel='INFO',
+                    descripcion=f'Cambio de contraseña forzado por primera vez',
+                )
+
+                messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
+                return redirect('users:profile')
+
+            except Exception as e:
+                messages.error(request, f'Error al cambiar contraseña: {str(e)}')
+                return render(request, 'users/change_password.html')
+
+        # Flujo normal: pedimos la contraseña actual
         current_password = request.POST.get('current_password', '').strip()
         new_password = request.POST.get('new_password', '').strip()
         confirm_password = request.POST.get('confirm_password', '').strip()
-        
+
         # Validaciones
         if not current_password:
             messages.error(request, 'Debes ingresar tu contraseña actual.')
             return render(request, 'users/change_password.html')
-        
+
         if not new_password:
             messages.error(request, 'Debes ingresar una nueva contraseña.')
             return render(request, 'users/change_password.html')
-        
+
         if new_password != confirm_password:
             messages.error(request, 'Las contraseñas no coinciden.')
             return render(request, 'users/change_password.html')
-        
+
         # Verificar contraseña actual
         if not request.user.check_password(current_password):
             messages.error(request, 'La contraseña actual es incorrecta.')
             return render(request, 'users/change_password.html')
-        
+
         # Validar que la nueva contraseña sea diferente
         if request.user.check_password(new_password):
             messages.error(request, 'La nueva contraseña debe ser diferente a la actual.')
             return render(request, 'users/change_password.html')
-        
+
         # Validar longitud mínima
         if len(new_password) < 8:
             messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
             return render(request, 'users/change_password.html')
-        
+
         try:
             # Cambiar contraseña
             request.user.set_password(new_password)
             request.user.save()
-            
+
             # Registrar cambio en logs
             Log.objects.create(
                 user=request.user,
@@ -457,14 +556,14 @@ def change_password_view(request):
                 nivel='INFO',
                 descripcion=f'Cambio de contraseña realizado por el usuario',
             )
-            
+
             messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
             return redirect('users:profile')
-            
+
         except Exception as e:
             messages.error(request, f'Error al cambiar contraseña: {str(e)}')
             return render(request, 'users/change_password.html')
-    
+
     # GET
     return render(request, 'users/change_password.html')
 

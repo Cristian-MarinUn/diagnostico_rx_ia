@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Lista de Usuarios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper user-list-page">
+    <div class="dashboard-container">
+        <div class="section-header">
+            <h2 class="section-title">Usuarios registrados</h2>
+            <a href="{% url 'users:admin_dashboard' %}" class="section-link">Volver al Dashboard →</a>
+        </div>
+
+        <div class="users-table-container">
+            {% if users_list and users_list.object_list %}
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Identificación</th>
+                        <th>Teléfono</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users_list.object_list %}
+                    <tr>
+                        <td>
+                            <div class="user-avatar-cell">
+                                <div class="user-avatar-small">{{ u.first_name.0 }}{{ u.last_name.0 }}</div>
+                                <div class="user-info-cell">
+                                    <span class="user-name">{{ u.get_full_name }}</span>
+                                    <span class="user-email">{{ u.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ u.get_rol_display }}</td>
+                        <td>
+                            {% if u.estado %}
+                                <span class="badge badge-success">Activo</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.identificacion|default:'-' }}</td>
+                        <td>{{ u.telefono|default:'-' }}</td>
+                        <td>{{ u.fecha_registro|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'users:profile' %}" class="btn btn-outline btn-icon-sm" title="Ver perfil">Ver</a>
+                                <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">Editar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="pagination">
+                {% if users_list.has_previous %}
+                    <a href="?page={{ users_list.previous_page_number }}" class="btn btn-outline">← Anterior</a>
+                {% endif %}
+                <span>Página {{ users_list.number }} de {{ users_list.paginator.num_pages }}</span>
+                {% if users_list.has_next %}
+                    <a href="?page={{ users_list.next_page_number }}" class="btn btn-outline">Siguiente →</a>
+                {% endif %}
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <h3 class="empty-state-title">No hay usuarios registrados</h3>
+                <p class="empty-state-description">Crea usuarios desde el panel de administración.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

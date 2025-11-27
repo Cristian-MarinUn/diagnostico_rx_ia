@@ -39,6 +39,19 @@ nuevos_usuarios = [
         'password': 'AdminPass123!',
         'estado': True,
     },
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Médicos Radiólogos
     {
         'email': 'medico@hospital.com',
@@ -100,6 +113,24 @@ nuevos_usuarios = [
         'password': 'MedicoPass123!',
         'estado': True,
     },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     # Técnicos de Salud
     {
         'email': 'tecnico@hospital.com',
