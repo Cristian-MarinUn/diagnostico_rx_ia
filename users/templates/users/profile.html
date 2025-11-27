@@ -1,0 +1,257 @@
+<!-- ================================ USER -->
+<!-- ARCHIVO: Users/templates/users/profile.html -->
+<!-- ================================ USER -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+{% comment %} Añadimos un query param para busting de caché y un estilo inline de diagnóstico/override {% endcomment %}
+<link rel="stylesheet" href="{% static 'users/css/profile.css' %}?v=2">
+<style>
+/* Override rápido para asegurar que el fondo del perfil use el degradado oscuro */
+.profile-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container">
+        <!-- Header del perfil -->
+        <div class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-avatar">
+                    {% if user.foto_perfil %}
+                        <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}" class="avatar-image">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            <span class="avatar-icon">👤</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-header-info">
+                    <h1 class="profile-name">{{ user_data.nombre_completo }}</h1>
+                    <p class="profile-role">
+                        <span class="role-badge role-{{ user.rol|lower }}">
+                            {{ user_data.rol }}
+                        </span>
+                    </p>
+                    <p class="profile-email">
+                        <span class="icon">📧</span>
+                        <span>{{ user_data.email }}</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="#" class="btn btn-primary">
+                    <span>✏️</span>
+                    <span>Editar Perfil</span>
+                </a>
+                <a href="{% url 'users:change_password' %}" class="btn btn-secondary">
+                    <span>🔒</span>
+                    <span>Cambiar Contraseña</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Grid de información -->
+        <div class="profile-grid">
+            <!-- Información Personal -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span class="card-icon">📋</span>
+                        <span>Información Personal</span>
+                    </h2>
+                </div>
+                <div class="card-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Nombre Completo</span>
+                            <span class="info-value">{{ user_data.nombre_completo }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Correo Electrónico</span>
+                            <span class="info-value">{{ user_data.email }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Identificación</span>
+                            <span class="info-value">{{ user_data.identificacion|default:"No especificado" }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Teléfono</span>
+                            <span class="info-value">{{ user_data.telefono }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Rol del Sistema</span>
+                            <span class="info-value">
+                                <span class="role-badge role-{{ user.rol|lower }}">
+                                    {{ user_data.rol }}
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Estado de Cuenta</span>
+                            <span class="info-value">
+                                <span class="status-badge status-{{ user.estado|yesno:'active,inactive' }}">
+                                    {{ user_data.estado }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actividad -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span class="card-icon">📊</span>
+                        <span>Actividad</span>
+                    </h2>
+                </div>
+                <div class="card-content">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-icon">🔐</div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ statistics.total_logins }}</span>
+                                <span class="stat-label">Inicios de Sesión</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">💻</div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ statistics.active_sessions_count }}</span>
+                                <span class="stat-label">Sesiones Activas</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ user_data.fecha_registro|date:"d/m/Y" }}</span>
+                                <span class="stat-label">Fecha de Registro</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon">🕐</div>
+                            <div class="stat-info">
+                                <span class="stat-value">{{ user_data.ultimo_acceso|date:"d/m/Y H:i" }}</span>
+                                <span class="stat-label">Último Acceso</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sesiones Activas -->
+            <div class="profile-card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span class="card-icon">🖥️</span>
+                        <span>Sesiones Activas</span>
+                    </h2>
+                    <span class="badge">{{ statistics.active_sessions_count }}</span>
+                </div>
+                <div class="card-content">
+                    {% if active_sessions %}
+                        <div class="sessions-list">
+                            {% for session in active_sessions %}
+                                <div class="session-item">
+                                    <div class="session-icon">💻</div>
+                                    <div class="session-info">
+                                        <div class="session-header">
+                                            <span class="session-title">Sesión Activa</span>
+                                            <span class="session-badge active">Activa</span>
+                                        </div>
+                                        <div class="session-details">
+                                            <span class="session-detail">
+                                                <span class="detail-icon">📍</span>
+                                                <span>IP: {{ session.ip_address }}</span>
+                                            </span>
+                                            <span class="session-detail">
+                                                <span class="detail-icon">🕐</span>
+                                                <span>Inicio: {{ session.login_time|date:"d/m/Y H:i" }}</span>
+                                            </span>
+                                            <span class="session-detail">
+                                                <span class="detail-icon">⏰</span>
+                                                <span>Expira: {{ session.expires_at|date:"d/m/Y H:i" }}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-close-session" data-session-id="{{ session.id }}">
+                                        <span>❌</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <span class="empty-icon">💤</span>
+                            <p>No hay sesiones activas adicionales</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Actividad Reciente -->
+            <div class="profile-card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <span class="card-icon">📝</span>
+                        <span>Actividad Reciente</span>
+                    </h2>
+                </div>
+                <div class="card-content">
+                    {% if recent_logs %}
+                        <div class="activity-timeline">
+                            {% for log in recent_logs %}
+                                <div class="activity-item">
+                                    <div class="activity-indicator"></div>
+                                    <div class="activity-content">
+                                        <div class="activity-header">
+                                            <span class="activity-action">{{ log.get_accion_display }}</span>
+                                            <span class="activity-time">{{ log.timestamp|date:"d/m/Y H:i" }}</span>
+                                        </div>
+                                        <p class="activity-description">{{ log.descripcion }}</p>
+                                        {% if log.ip_address %}
+                                            <span class="activity-meta">
+                                                <span class="meta-icon">📍</span>
+                                                <span>{{ log.ip_address }}</span>
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <span class="empty-icon">📭</span>
+                            <p>No hay actividad reciente registrada</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/profile.js' %}"></script>
+{% endblock %}

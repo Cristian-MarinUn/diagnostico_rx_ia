@@ -1,0 +1,457 @@
+<!-- ================================ -->
+<!-- ARCHIVO: users/templates/users/user_create.html (ACTUALIZADO) -->
+<!-- ================================ -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Crear Usuario - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+<style>
+    /* Estilos específicos del formulario */
+    .form-card {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+        color: #94a3b8;
+    }
+
+    .breadcrumb a {
+        color: #94a3b8;
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        color: #667eea;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #cbd5e1;
+    }
+
+    .required {
+        color: #ef4444;
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(51, 65, 85, 0.6);
+        border-radius: 8px;
+        font-size: 0.9375rem;
+        background: rgba(15, 23, 42, 0.6);
+        color: #f1f5f9;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+
+    .form-control::placeholder {
+        color: #64748b;
+    }
+
+    .form-help {
+        font-size: 0.8125rem;
+        color: #94a3b8;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23CBD5E1' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+        cursor: pointer;
+    }
+
+    .toggle-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 48px;
+        height: 24px;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(51, 65, 85, 0.6);
+        transition: 0.3s;
+        border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #e2e8f0;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #10b981;
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+    }
+
+    .info-box {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-icon {
+        font-size: 1.5rem;
+    }
+
+    .info-text {
+        font-size: 0.875rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: rgba(51, 65, 85, 0.6);
+        color: #cbd5e1;
+        border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(51, 65, 85, 0.8);
+        color: #f1f5f9;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+
+    .alert-error {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{% url 'users:admin_dashboard' %}">🏠</a></li>
+<li><a href="{% url 'users:user_create' %}" style="color:var(--accent);">👥</a></li>
+<li><a href="#">⚙️</a></li>
+{% endblock %}
+
+{% block page_title %}Crear Usuario{% endblock %}
+{% block page_subtitle %}Registrar nuevo usuario en el sistema{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+    <a href="{% url 'users:admin_dashboard' %}">Dashboard</a>
+    <span>›</span>
+    <span>Crear Usuario</span>
+</div>
+
+<!-- Mensajes -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+            <span>{{ message }}</span>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Formulario -->
+<div class="form-card">
+    <form method="post" id="createUserForm">
+        {% csrf_token %}
+
+        <!-- Información Personal -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <span>📋</span>
+                <span>Información Personal</span>
+            </h3>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">
+                        Nombre <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="first_name" 
+                        class="form-control"
+                        placeholder="Ej: Juan"
+                        value="{{ form_data.first_name }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Apellido <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="last_name" 
+                        class="form-control"
+                        placeholder="Ej: Pérez García"
+                        value="{{ form_data.last_name }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Identificación <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="identificacion" 
+                        class="form-control"
+                        placeholder="Ej: 1234567890"
+                        value="{{ form_data.identificacion }}"
+                        pattern="[0-9]{6,15}"
+                        required
+                    >
+                    <small class="form-help">Solo números, 6-15 dígitos</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Correo Electrónico <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        class="form-control"
+                        placeholder="usuario@ejemplo.com"
+                        value="{{ form_data.email }}"
+                        required
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- Rol y Estado -->
+        <div class="form-section">
+            <h3 class="section-title">
+                <span>🎭</span>
+                <span>Rol y Permisos</span>
+            </h3>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">
+                        Rol del Usuario <span class="required">*</span>
+                    </label>
+                    <select name="rol" class="form-control" required>
+                        <option value="">Seleccionar rol...</option>
+                        {% for value, label in roles %}
+                            <option value="{{ value }}" {% if form_data.rol == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Estado Inicial</label>
+                    <div class="toggle-wrapper">
+                        <label class="toggle-switch">
+                            <input 
+                                type="checkbox" 
+                                name="estado"
+                                id="estado"
+                                {% if not form_data or form_data.estado == 'on' %}checked{% endif %}
+                            >
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span id="estado-text">Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <span class="info-icon">ℹ️</span>
+            <p class="info-text">
+                Se generará una contraseña temporal segura que será enviada al correo del usuario.
+                El usuario deberá cambiarla en su primer inicio de sesión.
+            </p>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+            <a href="{% url 'users:admin_dashboard' %}" class="btn btn-secondary">
+                <span>❌</span>
+                <span>Cancelar</span>
+            </a>
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span id="submitIcon">➕</span>
+                <span id="submitText">Crear Usuario</span>
+            </button>
+        </div>
+    </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoCheckbox = document.getElementById('estado');
+        const estadoText = document.getElementById('estado-text');
+        const form = document.getElementById('createUserForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Toggle estado
+        estadoCheckbox.addEventListener('change', function() {
+            estadoText.textContent = this.checked ? 'Activo' : 'Inactivo';
+        });
+
+        // Loading al enviar
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            document.getElementById('submitIcon').textContent = '⏳';
+            document.getElementById('submitText').textContent = 'Creando...';
+        });
+    });
+</script>
+{% endblock %}

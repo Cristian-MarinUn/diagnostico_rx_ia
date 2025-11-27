@@ -1,0 +1,79 @@
+<!-- ================================ -->
+<!-- ARCHIVO: authentication/templates/authentication/logout.html -->
+<!-- ================================ -->
+{% extends 'core/base.html' %}
+
+{% block title %}Cerrar Sesión - Diagnóstico IA{% endblock %}
+
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'authentication/css/logout.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="logout-container">
+    <div class="logout-card">
+        <div class="logout-icon">🚪</div>
+        
+        <h1 class="logout-title">¿Deseas cerrar sesión?</h1>
+        
+        <p class="logout-message">
+            Estás a punto de cerrar tu sesión. Deberás iniciar sesión nuevamente para acceder al sistema.
+        </p>
+        
+        <div class="user-info">
+            <p>
+                Usuario: <strong>{{ user.get_full_name }}</strong><br>
+                Rol: <strong>{{ user.get_rol_display }}</strong>
+            </p>
+        </div>
+        
+        <div class="logout-actions">
+            <form method="post" action="{% url 'authentication:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    Sí, cerrar sesión
+                </button>
+            </form>
+            
+            <form method="post" action="{% url 'authentication:logout_cancel' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">
+                    Cancelar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script opcional para añadir confirmación adicional
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutForm = document.querySelector('form[action*="logout"]');
+    
+    if (logoutForm) {
+        const logoutBtn = logoutForm.querySelector('.btn-danger');
+        
+        logoutForm.addEventListener('submit', function(e) {
+            // Añadir clase de loading
+            logoutBtn.classList.add('loading');
+            logoutBtn.disabled = true;
+        });
+    }
+    
+    // Animación de entrada para los elementos
+    const elements = document.querySelectorAll('.logout-icon, .logout-title, .logout-message, .user-info, .logout-actions');
+    elements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            element.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,352 @@
+<!-- ================================ -->
+<!-- ARCHIVO: users/templates/users/admin_dashboard.html -->
+<!-- ================================ -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Panel de Administración - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+        
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <div class="welcome-text">
+                    <h1>Panel de Administración 🛡️</h1>
+                    <p>Gestiona usuarios, monitorea el sistema y visualiza estadísticas</p>
+                    <span class="user-role">
+                        <span>👑</span>
+                        <span>{{ user.get_rol_display }}</span>
+                    </span>
+                </div>
+                <div class="dashboard-actions">
+                    <a href="{% url 'users:user_create' %}" class="btn btn-primary">
+                        <span>➕</span>
+                        <span>Nuevo Usuario</span>
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <span>📊</span>
+                        <span>Generar Reporte</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <span>👥</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Usuarios</div>
+                    <div class="stat-value">{{ total_usuarios|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+5 este mes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>🩺</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Médicos</div>
+                    <div class="stat-value">{{ total_medicos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+2 nuevos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>🔬</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Técnicos</div>
+                    <div class="stat-value">{{ total_tecnicos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+3 nuevos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <span>📊</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Diagnósticos</div>
+                    <div class="stat-value">{{ total_diagnosticos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+87 esta semana</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>📁</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Imágenes</div>
+                    <div class="stat-value">{{ total_imagenes|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+124 hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>🎯</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Precisión IA</div>
+                    <div class="stat-value">{{ precision_sistema|default:"96.8" }}%</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+1.5% mejora</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions for Admin -->
+        <section class="quick-actions-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">⚡</span>
+                    <span>Gestión Rápida</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver todas las opciones</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="actions-grid">
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>👥</span>
+                    </div>
+                    <h3 class="action-title">Gestionar Usuarios</h3>
+                    <p class="action-description">
+                        Crear, editar y administrar cuentas de usuarios del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔐</span>
+                    </div>
+                    <h3 class="action-title">Permisos</h3>
+                    <p class="action-description">
+                        Configurar roles y permisos de acceso al sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="action-title">Reportes</h3>
+                    <p class="action-description">
+                        Generar reportes estadísticos del uso del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔍</span>
+                    </div>
+                    <h3 class="action-title">Monitoreo</h3>
+                    <p class="action-description">
+                        Supervisar actividad y logs del sistema en tiempo real
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>⚙️</span>
+                    </div>
+                    <h3 class="action-title">Configuración</h3>
+                    <p class="action-description">
+                        Ajustar parámetros y configuración general del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔔</span>
+                    </div>
+                    <h3 class="action-title">Notificaciones</h3>
+                    <p class="action-description">
+                        Gestionar alertas y notificaciones del sistema
+                    </p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Users Management Table -->
+        <section class="recent-activity-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">👥</span>
+                    <span>Usuarios Recientes</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver todos los usuarios</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="users-table-container">
+                {% if recent_users %}
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Último Acceso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_item in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="user-avatar-cell">
+                                    <div class="user-avatar-small">
+                                        {{ user_item.first_name.0 }}{{ user_item.last_name.0 }}
+                                    </div>
+                                    <div class="user-info-cell">
+                                        <span class="user-name">{{ user_item.get_full_name }}</span>
+                                        <span class="user-email">{{ user_item.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ user_item.rol|lower }}">
+                                    {{ user_item.get_rol_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user_item.is_active %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="activity-time">
+                                    <span>🕐</span>
+                                    <span>{{ user_item.last_login|timesince }} atrás</span>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Ver perfil">
+                                        <span>👁️</span>
+                                    </a>
+                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">
+                                        <span>✏️</span>
+                                    </a>
+                                    <button class="btn btn-danger btn-icon-sm" title="Desactivar">
+                                        <span>🚫</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <h3 class="empty-state-title">No hay usuarios registrados</h3>
+                    <p class="empty-state-description">
+                        Comienza agregando el primer usuario al sistema
+                    </p>
+                    <a href="{% url 'users:user_create' %}" class="btn btn-primary">
+                        Crear Primer Usuario
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- System Activity -->
+        <section class="recent-activity-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">📈</span>
+                    <span>Actividad del Sistema</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver logs completos</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="activity-container">
+                {% if system_activities %}
+                <div class="activity-list">
+                    {% for activity in system_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}">
+                            <span>{{ activity.icon }}</span>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-description">{{ activity.description }}</div>
+                            <div class="activity-meta">
+                                <span class="activity-time">
+                                    <span>🕐</span>
+                                    <span>{{ activity.time }}</span>
+                                </span>
+                                <span class="activity-badge badge-{{ activity.level }}">
+                                    {{ activity.level_text }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <h3 class="empty-state-title">Sistema Estable</h3>
+                    <p class="empty-state-description">
+                        No hay eventos importantes que reportar en este momento
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/dashboard.js' %}"></script>
+<script src="{% static 'users/js/admin-dashboard.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,315 @@
+<!-- ================================ -->
+<!-- ARCHIVO: users/templates/users/user_dashboard.html -->
+<!-- ================================ -->
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-container">
+        
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <div class="welcome-text">
+                    <h1>¡Bienvenido, {{ user.first_name }}! 👋</h1>
+                    <p>Aquí tienes un resumen de tu actividad reciente</p>
+                    <span class="user-role">
+                        <span>👨‍⚕️</span>
+                        <span>{{ user.get_rol_display }}</span>
+                    </span>
+                </div>
+                <div class="dashboard-actions">
+                    {% if user.rol == 'MEDICO_RADIOLOGO' %}
+                        <a href="#" class="btn btn-primary">
+                            <span>📊</span>
+                            <span>Nuevo Diagnóstico</span>
+                        </a>
+                    {% elif user.rol == 'TECNICO_SALUD' %}
+                        <a href="#" class="btn btn-primary">
+                            <span>📤</span>
+                            <span>Cargar Imágenes</span>
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'users:profile' %}" class="btn btn-outline">
+                        <span>⚙️</span>
+                        <span>Mi Perfil</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <span>📁</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Estudios</div>
+                    <div class="stat-value">{{ total_estudios|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+12% este mes</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.rol == 'MEDICO_RADIOLOGO' %}
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>✅</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Diagnósticos</div>
+                    <div class="stat-value">{{ total_diagnosticos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+8% esta semana</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <span>⏳</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Pendientes</div>
+                    <div class="stat-value">{{ pendientes|default:0 }}</div>
+                    <div class="stat-change negative">
+                        <span class="arrow">↘</span>
+                        <span>3 para hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>📈</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Precisión IA</div>
+                    <div class="stat-value">{{ precision_ia|default:"94.2" }}%</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+2.1% mejora</span>
+                    </div>
+                </div>
+            </div>
+            {% elif user.rol == 'TECNICO_SALUD' %}
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>📤</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Imágenes Cargadas</div>
+                    <div class="stat-value">{{ imagenes_cargadas|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+15% este mes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <span>⚙️</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">En Proceso</div>
+                    <div class="stat-value">{{ en_proceso|default:0 }}</div>
+                    <div class="stat-change">
+                        <span>Analizando</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>✅</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Completados</div>
+                    <div class="stat-value">{{ completados|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>Hoy</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">⚡</span>
+                    <span>Acciones Rápidas</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver todas</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="actions-grid">
+                {% if user.rol == 'MEDICO_RADIOLOGO' %}
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔍</span>
+                    </div>
+                    <h3 class="action-title">Solicitar Análisis IA</h3>
+                    <p class="action-description">
+                        Obtén un diagnóstico preliminar asistido por IA en segundos
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📋</span>
+                    </div>
+                    <h3 class="action-title">Ver Diagnósticos</h3>
+                    <p class="action-description">
+                        Revisa y gestiona todos tus diagnósticos realizados
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="action-title">Reportes</h3>
+                    <p class="action-description">
+                        Genera reportes estadísticos de tu actividad
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔄</span>
+                    </div>
+                    <h3 class="action-title">Comparar Estudios</h3>
+                    <p class="action-description">
+                        Compara imágenes con casos anteriores del paciente
+                    </p>
+                </a>
+                {% elif user.rol == 'TECNICO_SALUD' %}
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📤</span>
+                    </div>
+                    <h3 class="action-title">Cargar Imágenes</h3>
+                    <p class="action-description">
+                        Sube nuevas imágenes médicas al sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📁</span>
+                    </div>
+                    <h3 class="action-title">Mis Cargas</h3>
+                    <p class="action-description">
+                        Revisa el estado de las imágenes que has subido
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔔</span>
+                    </div>
+                    <h3 class="action-title">Notificaciones</h3>
+                    <p class="action-description">
+                        Recibe alertas sobre el procesamiento de imágenes
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="action-title">Estadísticas</h3>
+                    <p class="action-description">
+                        Visualiza métricas de tus cargas y eficiencia
+                    </p>
+                </a>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <section class="recent-activity-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">🕒</span>
+                    <span>Actividad Reciente</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver historial completo</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="activity-container">
+                {% if recent_activities %}
+                <div class="activity-list">
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}">
+                            <span>{{ activity.icon }}</span>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-description">{{ activity.description }}</div>
+                            <div class="activity-meta">
+                                <span class="activity-time">
+                                    <span>🕐</span>
+                                    <span>{{ activity.time }}</span>
+                                </span>
+                                <span class="activity-badge badge-{{ activity.status }}">
+                                    {{ activity.status_text }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3 class="empty-state-title">No hay actividad reciente</h3>
+                    <p class="empty-state-description">
+                        Cuando realices acciones en el sistema, aparecerán aquí
+                    </p>
+                    {% if user.rol == 'MEDICO_RADIOLOGO' %}
+                    <a href="#" class="btn btn-primary">
+                        Solicitar Diagnóstico
+                    </a>
+                    {% elif user.rol == 'TECNICO_SALUD' %}
+                    <a href="#" class="btn btn-primary">
+                        Cargar Imágenes
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/dashboard.js' %}"></script>
+{% endblock %}

@@ -16,14 +16,34 @@
     <nav class="navbar">
         <div class="container">
             <div class="navbar-brand">
-                <span class="logo">🏥</span>
-                <span class="brand-name">Diagnóstico IA</span>
+                <a href="{% url 'core:home' %}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem;">
+                    <span class="logo">🏥</span>
+                    <span class="brand-name" style="font-size: 1.5rem; font-weight: 700;">LOGO</span>
+                </a>
             </div>
             <ul class="navbar-menu">
-                <li><a href="{% url 'core:home' %}" class="nav-link active">Inicio</a></li>
-                <li><a href="#" class="nav-link">Características</a></li>
-                <li><a href="#" class="nav-link">Acerca de</a></li>
-                <li><a href="#" class="btn btn-primary">Iniciar Sesión</a></li>
+                {% if user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'users:profile' %}" class="nav-link" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>👤</span>
+                            <span>{{ user.get_full_name }}</span>
+                            <span style="font-size: 0.8125rem; color: var(--gray-500); font-weight: normal;">
+                                ({{ user.get_rol_display }})
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'authentication:logout' %}" class="btn btn-secondary">
+                            Cerrar Sesión
+                        </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{% url 'authentication:login' %}" class="btn btn-primary">
+                            login
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </nav>
