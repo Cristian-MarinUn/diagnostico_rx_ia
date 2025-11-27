@@ -1,487 +1,352 @@
 <!-- ================================ -->
-<!-- ARCHIVO: users/templates/users/admin_dashboard.html (ACTUALIZADO) -->
+<!-- ARCHIVO: users/templates/users/admin_dashboard.html -->
 <!-- ================================ -->
-{% extends 'users/dashboard.html' %}
+{% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Admin Dashboard - {{ user.get_full_name }}{% endblock %}
+{% block title %}Panel de Administración - {{ user.get_full_name }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
 <style>
-    /* Estilos específicos para admin dashboard */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-        transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-    }
-
-    .stat-icon-wrapper {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        flex-shrink: 0;
-    }
-
-    .stat-card.stat-primary .stat-icon-wrapper {
-        background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
-    }
-
-    .stat-card.stat-success .stat-icon-wrapper {
-        background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
-    }
-
-    .stat-card.stat-warning .stat-icon-wrapper {
-        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-    }
-
-    .stat-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #111827;
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
-    }
-
-    .dashboard-row {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .dashboard-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-    }
-
-    .dashboard-card.full {
-        grid-column: 1 / -1;
-    }
-
-    .card-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        background: linear-gradient(135deg, #f9fafb, #ffffff);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .card-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: #111827;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .role-stats-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .role-stat-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 8px;
-    }
-
-    .role-name {
-        font-weight: 600;
-        font-size: 0.9375rem;
-    }
-
-    .role-count {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .users-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .user-item {
-        display: flex;
-        align-items: center;
-        gap: 0.875rem;
-        padding: 0.875rem;
-        background: #f9fafb;
-        border-radius: 8px;
-        transition: all 0.2s;
-    }
-
-    .user-item:hover {
-        background: #f3f4f6;
-    }
-
-    .user-avatar {
-        width: 42px;
-        height: 42px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #EEF2FF, #E0E7FF);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        flex-shrink: 0;
-    }
-
-    .user-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .user-name {
-        font-weight: 600;
-        font-size: 0.9375rem;
-        color: #111827;
-    }
-
-    .user-email {
-        font-size: 0.8125rem;
-        color: #6b7280;
-    }
-
-    .role-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .role-badge.role-administrador {
-        background: #FEE2E2;
-        color: #991B1B;
-    }
-
-    .role-badge.role-medico_radiologo {
-        background: #DBEAFE;
-        color: #1E40AF;
-    }
-
-    .role-badge.role-tecnico_salud {
-        background: #D1FAE5;
-        color: #065F46;
-    }
-
-    .activity-table {
-        overflow-x: auto;
-    }
-
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .data-table thead {
-        background: #f9fafb;
-    }
-
-    .data-table th {
-        padding: 0.75rem 1rem;
-        text-align: left;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .data-table td {
-        padding: 0.875rem 1rem;
-        font-size: 0.9375rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .data-table tbody tr:hover {
-        background: #f9fafb;
-    }
-
-    .action-badge {
-        display: inline-flex;
-        padding: 0.25rem 0.625rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .action-badge.action-info {
-        background: #EFF6FF;
-        color: #1E40AF;
-    }
-
-    .action-badge.action-warning {
-        background: #FFFBEB;
-        color: #92400E;
-    }
-
-    .action-badge.action-error {
-        background: #FEF2F2;
-        color: #991B1B;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: #9ca3af;
-    }
-
-    .empty-state span {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 0.5rem;
-        opacity: 0.5;
-    }
-
-    .btn-create {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: white;
-        border: none;
-        font-size: 1.5rem;
-        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-    }
-
-    .btn-create:hover {
-        transform: scale(1.1);
-        box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
-    }
-
-    @media (max-width: 1024px) {
-        .stats-row,
-        .dashboard-row {
-            grid-template-columns: 1fr;
-        }
-    }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
 </style>
 {% endblock %}
 
-{% block sidebar_links %}
-<li><a href="{% url 'users:admin_dashboard' %}">🏠</a></li>
-<li><a href="{% url 'users:user_create' %}">👥</a></li>
-<li><a href="#">⚙️</a></li>
-{% endblock %}
-
-{% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Gestión y monitoreo del sistema{% endblock %}
-
 {% block content %}
-<!-- Estadísticas principales -->
-<div class="stats-row">
-
-    
-    <div class="stat-card stat-primary">
-        <div class="stat-icon-wrapper">
-            <span>👥</span>
-        </div>
-        <div class="stat-info">
-            <span class="stat-value">{{ statistics.total_users }}</span>
-            <span class="stat-label">Total Usuarios</span>
-        </div>
-    </div>
-
-    <div class="stat-card stat-success">
-        <div class="stat-icon-wrapper">
-            <span>✅</span>
-        </div>
-        <div class="stat-info">
-            <span class="stat-value">{{ statistics.active_users }}</span>
-            <span class="stat-label">Usuarios Activos</span>
-        </div>
-    </div>
-
-    <div class="stat-card stat-warning">
-        <div class="stat-icon-wrapper">
-            <span>⏸️</span>
-        </div>
-        <div class="stat-info">
-            <span class="stat-value">{{ statistics.inactive_users }}</span>
-            <span class="stat-label">Usuarios Inactivos</span>
-        </div>
-    </div>
-</div>
-
-<!-- Fila de tarjetas -->
-<div class="dashboard-row">
-    <!-- Usuarios por Rol -->
-    <div class="dashboard-card">
-        <div class="card-header">
-            <h3 class="card-title">
-                <span>🎭</span>
-                <span>Usuarios por Rol</span>
-            </h3>
-        </div>
-        <div class="card-body">
-            <div class="role-stats-list">
-                <div class="role-stat-item">
-                    <span class="role-name">Administradores</span>
-                    <span class="role-count">{{ statistics.admins }}</span>
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+        
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-welcome">
+                <div class="welcome-text">
+                    <h1>Panel de Administración 🛡️</h1>
+                    <p>Gestiona usuarios, monitorea el sistema y visualiza estadísticas</p>
+                    <span class="user-role">
+                        <span>👑</span>
+                        <span>{{ user.get_rol_display }}</span>
+                    </span>
                 </div>
-                <div class="role-stat-item">
-                    <span class="role-name">Médicos Radiólogos</span>
-                    <span class="role-count">{{ statistics.medicos }}</span>
-                </div>
-                <div class="role-stat-item">
-                    <span class="role-name">Técnicos de Salud</span>
-                    <span class="role-count">{{ statistics.tecnicos }}</span>
+                <div class="dashboard-actions">
+                    <a href="{% url 'users:user_create' %}" class="btn btn-primary">
+                        <span>➕</span>
+                        <span>Nuevo Usuario</span>
+                    </a>
+                    <a href="#" class="btn btn-secondary">
+                        <span>📊</span>
+                        <span>Generar Reporte</span>
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Usuarios Recientes -->
-    <div class="dashboard-card">
-        <div class="card-header">
-            <h3 class="card-title">
-                <span>🆕</span>
-                <span>Usuarios Recientes</span>
-            </h3>
-        </div>
-        <div class="card-body">
-            {% if recent_users %}
-                <div class="users-list">
-                    {% for user in recent_users %}
-                        <div class="user-item">
-                            <div class="user-avatar">
-                                {% if user.foto_perfil %}
-                                    <img src="{{ user.foto_perfil.url }}" alt="{{ user.get_full_name }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
-                                {% else %}
-                                    <span>👤</span>
-                                {% endif %}
-                            </div>
-                            <div class="user-info">
-                                <span class="user-name">{{ user.get_full_name }}</span>
-                                <span class="user-email">{{ user.email }}</span>
-                            </div>
-                            <span class="role-badge role-{{ user.rol|lower }}">
-                                {{ user.get_rol_display }}
-                            </span>
-                        </div>
-                    {% endfor %}
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <span>👥</span>
                 </div>
-            {% else %}
-                <div class="empty-state">
-                    <span>📭</span>
-                    <p>No hay usuarios recientes</p>
+                <div class="stat-content">
+                    <div class="stat-label">Total Usuarios</div>
+                    <div class="stat-value">{{ total_usuarios|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+5 este mes</span>
+                    </div>
                 </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
+            </div>
 
-<!-- Actividad Reciente -->
-<div class="dashboard-card full">
-    <div class="card-header">
-        <h3 class="card-title">
-            <span>📝</span>
-            <span>Actividad Reciente</span>
-        </h3>
-    </div>
-    <div class="card-body">
-        {% if recent_activity %}
-            <div class="activity-table">
-                <table class="data-table">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>🩺</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Médicos</div>
+                    <div class="stat-value">{{ total_medicos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+2 nuevos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>🔬</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Técnicos</div>
+                    <div class="stat-value">{{ total_tecnicos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+3 nuevos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <span>📊</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Diagnósticos</div>
+                    <div class="stat-value">{{ total_diagnosticos|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+87 esta semana</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <span>📁</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Imágenes</div>
+                    <div class="stat-value">{{ total_imagenes|default:0 }}</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+124 hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <span>🎯</span>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Precisión IA</div>
+                    <div class="stat-value">{{ precision_sistema|default:"96.8" }}%</div>
+                    <div class="stat-change positive">
+                        <span class="arrow">↗</span>
+                        <span>+1.5% mejora</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions for Admin -->
+        <section class="quick-actions-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">⚡</span>
+                    <span>Gestión Rápida</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver todas las opciones</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="actions-grid">
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>👥</span>
+                    </div>
+                    <h3 class="action-title">Gestionar Usuarios</h3>
+                    <p class="action-description">
+                        Crear, editar y administrar cuentas de usuarios del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔐</span>
+                    </div>
+                    <h3 class="action-title">Permisos</h3>
+                    <p class="action-description">
+                        Configurar roles y permisos de acceso al sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>📊</span>
+                    </div>
+                    <h3 class="action-title">Reportes</h3>
+                    <p class="action-description">
+                        Generar reportes estadísticos del uso del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔍</span>
+                    </div>
+                    <h3 class="action-title">Monitoreo</h3>
+                    <p class="action-description">
+                        Supervisar actividad y logs del sistema en tiempo real
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>⚙️</span>
+                    </div>
+                    <h3 class="action-title">Configuración</h3>
+                    <p class="action-description">
+                        Ajustar parámetros y configuración general del sistema
+                    </p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <div class="action-icon">
+                        <span>🔔</span>
+                    </div>
+                    <h3 class="action-title">Notificaciones</h3>
+                    <p class="action-description">
+                        Gestionar alertas y notificaciones del sistema
+                    </p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Users Management Table -->
+        <section class="recent-activity-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">👥</span>
+                    <span>Usuarios Recientes</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver todos los usuarios</span>
+                    <span>→</span>
+                </a>
+            </div>
+
+            <div class="users-table-container">
+                {% if recent_users %}
+                <table class="users-table">
                     <thead>
                         <tr>
-                            <th>Acción</th>
                             <th>Usuario</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Último Acceso</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for log in recent_activity %}
-                            <tr>
-                                <td>
-                                    <span class="action-badge action-{{ log.nivel|lower }}">
-                                        {{ log.get_accion_display }}
-                                    </span>
-                                </td>
-                                <td>{{ log.user.get_full_name|default:"Sistema" }}</td>
-                                <td>{{ log.descripcion|truncatewords:15 }}</td>
-                                <td style="color:#6b7280;font-size:0.875rem;">{{ log.timestamp|date:"d/m/Y H:i" }}</td>
-                            </tr>
+                        {% for user_item in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="user-avatar-cell">
+                                    <div class="user-avatar-small">
+                                        {{ user_item.first_name.0 }}{{ user_item.last_name.0 }}
+                                    </div>
+                                    <div class="user-info-cell">
+                                        <span class="user-name">{{ user_item.get_full_name }}</span>
+                                        <span class="user-email">{{ user_item.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-{{ user_item.rol|lower }}">
+                                    {{ user_item.get_rol_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user_item.is_active %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="activity-time">
+                                    <span>🕐</span>
+                                    <span>{{ user_item.last_login|timesince }} atrás</span>
+                                </span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Ver perfil">
+                                        <span>👁️</span>
+                                    </a>
+                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">
+                                        <span>✏️</span>
+                                    </a>
+                                    <button class="btn btn-danger btn-icon-sm" title="Desactivar">
+                                        <span>🚫</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <h3 class="empty-state-title">No hay usuarios registrados</h3>
+                    <p class="empty-state-description">
+                        Comienza agregando el primer usuario al sistema
+                    </p>
+                    <a href="{% url 'users:user_create' %}" class="btn btn-primary">
+                        Crear Primer Usuario
+                    </a>
+                </div>
+                {% endif %}
             </div>
-        {% else %}
-            <div class="empty-state">
-                <span>📭</span>
-                <p>No hay actividad reciente</p>
+        </section>
+
+        <!-- System Activity -->
+        <section class="recent-activity-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="section-title-icon">📈</span>
+                    <span>Actividad del Sistema</span>
+                </h2>
+                <a href="#" class="section-link">
+                    <span>Ver logs completos</span>
+                    <span>→</span>
+                </a>
             </div>
-        {% endif %}
+
+            <div class="activity-container">
+                {% if system_activities %}
+                <div class="activity-list">
+                    {% for activity in system_activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}">
+                            <span>{{ activity.icon }}</span>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-description">{{ activity.description }}</div>
+                            <div class="activity-meta">
+                                <span class="activity-time">
+                                    <span>🕐</span>
+                                    <span>{{ activity.time }}</span>
+                                </span>
+                                <span class="activity-badge badge-{{ activity.level }}">
+                                    {{ activity.level_text }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <h3 class="empty-state-title">Sistema Estable</h3>
+                    <p class="empty-state-description">
+                        No hay eventos importantes que reportar en este momento
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
     </div>
 </div>
-
-<!-- Botón flotante para crear usuario -->
-<a href="{% url 'users:user_create' %}" class="btn-create" title="Crear Usuario">
-    ➕
-</a>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'users/js/dashboard.js' %}"></script>
+<script src="{% static 'users/js/admin-dashboard.js' %}"></script>
 {% endblock %}

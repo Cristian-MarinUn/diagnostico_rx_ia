@@ -12,18 +12,29 @@
     position: relative;
 }
 
-/* Efectos de fondo adicionales para el login */
+/* Hacer que el fondo del login siga el mismo degradado oscuro del dashboard */
+.login-container {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* 
+   Nota: El fondo animado principal viene de body::before en style.css
+   Aquí agregamos efectos adicionales específicos para el login
+*/
+
+/* Efectos de fondo adicionales para el login - Partículas flotantes */
 .login-container::before {
     content: '';
     position: absolute;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(102, 126, 234, 0.25) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
     top: -200px;
     right: -200px;
     border-radius: 50%;
     animation: float 8s ease-in-out infinite;
     pointer-events: none;
+    filter: blur(60px);
 }
 
 .login-container::after {
@@ -31,12 +42,13 @@
     position: absolute;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(118, 75, 162, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(118, 75, 162, 0.15) 0%, transparent 70%);
     bottom: -150px;
     left: -150px;
     border-radius: 50%;
     animation: float 10s ease-in-out infinite reverse;
     pointer-events: none;
+    filter: blur(60px);
 }
 
 @keyframes float {
@@ -52,9 +64,9 @@
 .login-card {
     width: 100%;
     max-width: 480px;
-    background: var(--glass-bg);
+    background: rgba(30, 41, 59, 0.5);
     backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
+    border: 1px solid rgba(148, 163, 184, 0.1);
     border-radius: 2rem;
     padding: 3rem 2.5rem;
     box-shadow: 
@@ -168,7 +180,7 @@
     display: block;
     margin-bottom: 0.75rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #f1f5f9;
     font-size: 0.9375rem;
     letter-spacing: 0.025em;
 }
@@ -179,24 +191,24 @@
     width: 100%;
     padding: 1rem 1.25rem;
     background: rgba(15, 23, 42, 0.6);
-    border: 2px solid var(--border-color);
+    border: 2px solid rgba(51, 65, 85, 0.6);
     border-radius: 0.875rem;
     font-size: 1rem;
-    color: var(--text-primary);
+    color: #f1f5f9;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: #667eea;
     background: rgba(15, 23, 42, 0.8);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
     transform: translateY(-2px);
 }
 
 .form-group input::placeholder {
-    color: var(--text-muted);
+    color: #64748b;
 }
 
 /* Toggle de contraseña */
@@ -220,12 +232,12 @@
     padding: 0.5rem;
     transition: all 0.3s;
     z-index: 2;
-    color: var(--text-muted);
+    color: #64748b;
 }
 
 .password-toggle-btn:hover {
     transform: translateY(-50%) scale(1.1);
-    color: var(--primary-color);
+    color: #667eea;
 }
 
 /* Checkbox Recordarme */
@@ -239,21 +251,21 @@
 .form-check input[type="checkbox"] {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--border-color);
+    border: 2px solid rgba(51, 65, 85, 0.6);
     border-radius: 0.5rem;
     cursor: pointer;
-    accent-color: var(--primary-color);
+    accent-color: #667eea;
     transition: all 0.3s;
 }
 
 .form-check input[type="checkbox"]:checked {
-    background: var(--primary-gradient);
-    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
 }
 
 .form-check-label {
     font-size: 0.9375rem;
-    color: var(--text-secondary);
+    color: #94a3b8;
     cursor: pointer;
     font-weight: 500;
     user-select: none;
@@ -339,7 +351,7 @@
 .btn-login {
     width: 100%;
     padding: 1.125rem;
-    background: var(--primary-gradient);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     border-radius: 0.875rem;
@@ -388,13 +400,13 @@
 .login-footer {
     text-align: center;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--glass-border);
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
     position: relative;
     z-index: 1;
 }
 
 .forgot-password {
-    color: var(--primary-color);
+    color: #667eea;
     text-decoration: none;
     font-size: 0.9375rem;
     font-weight: 600;
@@ -410,7 +422,7 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--primary-gradient);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     transition: width 0.3s ease;
 }
 
@@ -419,7 +431,7 @@
 }
 
 .forgot-password:hover {
-    color: var(--primary-light);
+    color: #7c8ff0;
 }
 
 /* Estados de carga */

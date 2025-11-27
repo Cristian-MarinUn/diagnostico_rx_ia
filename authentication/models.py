@@ -130,3 +130,96 @@ class Log(models.Model):
     
     def __str__(self):
         return f"{self.get_accion_display()} - {self.timestamp}"
+    
+
+
+# ================================
+# ARCHIVO: authentication/models.py (agregar este modelo)
+# ================================
+
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+class PasswordResetToken(models.Model):
+    """
+    Modelo para almacenar tokens de restablecimiento de contraseña
+    Implementa CU-002: Recuperar Contraseña
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens',
+        verbose_name='Usuario'
+    )
+    token = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Token'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de creación'
+    )
+    expires_at = models.DateTimeField(
+        verbose_name='Fecha de expiración'
+    )
+    is_used = models.BooleanField(
+        default=False,
+        verbose_name='¿Usado?'
+    )
+    used_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de uso'
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        verbose_name='Dirección IP'
+    )
+    
+    class Meta:
+        verbose_name = 'Token de Restablecimiento'
+        verbose_name_plural = 'Tokens de Restablecimiento'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['expires_at']),
+        ]
+    
+    def __str__(self):
+        return f"Token para {self.user.email} - {'Usado' if self.is_used else 'Activo'}"
+    
+    def is_valid(self):
+        """
+        Verifica si el token es válido (no usado y no expirado)
+        """
+        return not self.is_used and self.expires_at > timezone.now()
+    
+    def mark_as_used(self):
+        """
+        Marca el token como usado
+        """
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save()
+    
+    @classmethod
+    def cleanup_expired_tokens(cls):
+        """
+        Elimina tokens expirados (más de 24 horas)
+        Útil para ejecutar periódicamente con Celery o cron
+        """
+        expired_time = timezone.now() - timezone.timedelta(hours=24)
+        cls.objects.filter(created_at__lt=expired_time).delete()
+
+
+# ================================
+# MIGRACIÓN: Ejecutar después de crear el modelo
+# ================================
+"""
+python manage.py makemigrations
+python manage.py migrate
+"""

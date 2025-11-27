@@ -1,26 +1,18 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.contrib.auth import authenticate, login as django_login, logout as django_logout
-from django.contrib import messages
-from django.views import View
-from django.utils import timezone
-from datetime import timedelta
-from .forms import LoginForm
-from .models import User, Session, Log
-import secrets
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout as django_logout
+from django.contrib.auth import login as django_login, logout as django_logout
 from django.contrib import messages
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
-from .models import Session, Log
+from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
+import secrets
 
-
+from .forms import LoginForm, PasswordRecoveryForm, PasswordResetForm
+from .models import User, Session, Log, PasswordResetToken
 
 def get_client_ip(request):
     """Obtiene la IP del cliente"""
@@ -208,5 +200,260 @@ class LogoutCancelView(LoginRequiredMixin, View):
     
     def post(self, request):
         """Usuario cancela el cierre de sesión"""
-        # Mantener sesión activa y regresar a la página anterior
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+        # Redirigir al dashboard según el rol del usuario
+        if request.user.rol == 'admin':
+            return redirect('users:admin_dashboard')
+        else:
+            return redirect('users:dashboard')
+
+
+
+# ================================
+# CU-002: RECUPERAR CONTRASEÑA
+# ================================
+
+def password_recovery_view(request):
+    """
+    Vista para solicitar recuperación de contraseña.
+    Fase 1-3 del CU-002: Solicitud y generación de token
+    """
+    if request.method == 'POST':
+        form = PasswordRecoveryForm(request.POST)
+        
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            
+            try:
+                # A1: Verificar si el usuario existe
+                user = User.objects.get(email=email, is_active=True)
+                
+                # Generar token único y temporal (válido por 15 minutos)
+                token = secrets.token_urlsafe(32)
+                expires_at = timezone.now() + timedelta(minutes=15)
+                
+                # Guardar o actualizar token en la base de datos
+                PasswordResetToken.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'token': token,
+                        'expires_at': expires_at,
+                        'is_used': False
+                    }
+                )
+                
+                # Construir enlace de restablecimiento
+                reset_link = request.build_absolute_uri(
+                    f'/authentication/password-reset/{token}/'
+                )
+                
+                # Enviar correo con el enlace
+                try:
+                    send_password_reset_email(user.email, user.get_full_name(), reset_link)
+                    
+                    # Mensaje genérico por seguridad (no revela si el email existe)
+                    messages.success(
+                        request,
+                        'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.'
+                    )
+                    
+                except Exception as e:
+                    # Error al enviar correo
+                    messages.error(
+                        request,
+                        'No se pudo enviar el correo. Intenta nuevamente más tarde.'
+                    )
+                    print(f"Error enviando correo: {e}")
+                
+            except User.DoesNotExist:
+                # A1: Usuario no encontrado
+                # Mensaje genérico por seguridad (no revela que el email no existe)
+                messages.success(
+                    request,
+                    'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.'
+                )
+            
+            return redirect('authentication:password_recovery')
+    else:
+        form = PasswordRecoveryForm()
+    
+    return render(request, 'authentication/password_recovery.html', {
+        'form': form
+    })
+
+
+def password_reset_view(request, token):
+    """
+    Vista para restablecer la contraseña con el token.
+    Fase 4-8 del CU-002: Validación de token y actualización de contraseña
+    """
+    # Validar el token
+    try:
+        reset_token = PasswordResetToken.objects.get(
+            token=token,
+            is_used=False,
+            expires_at__gt=timezone.now()
+        )
+        user = reset_token.user
+        
+    except PasswordResetToken.DoesNotExist:
+        # A2: Token expirado o inválido
+        messages.error(
+            request,
+            'El enlace de restablecimiento ha expirado o no es válido. Solicita uno nuevo.'
+        )
+        return redirect('authentication:password_recovery')
+    
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password']
+            confirm_password = form.cleaned_data['confirm_password']
+            
+            # A3: Verificar que las contraseñas coincidan
+            if new_password != confirm_password:
+                messages.error(
+                    request,
+                    'Las contraseñas no coinciden. Vuelve a intentarlo.'
+                )
+                return render(request, 'authentication/password_reset.html', {
+                    'form': form,
+                    'token': token
+                })
+            
+            # Actualizar la contraseña
+            user.password = make_password(new_password)
+            user.save()
+            
+            # Invalidar el token
+            reset_token.is_used = True
+            reset_token.used_at = timezone.now()
+            reset_token.save()
+            
+            # Invalidar todos los tokens anteriores del usuario
+            PasswordResetToken.objects.filter(
+                user=user,
+                is_used=False
+            ).update(is_used=True)
+            
+            messages.success(
+                request,
+                'Tu contraseña ha sido actualizada exitosamente. Inicia sesión con tus nuevas credenciales.'
+            )
+            return redirect('authentication:login')
+    else:
+        form = PasswordResetForm()
+    
+    return render(request, 'authentication/password_reset.html', {
+        'form': form,
+        'token': token
+    })
+
+
+def send_password_reset_email(recipient_email, recipient_name, reset_link):
+    """
+    Función auxiliar para enviar el correo de recuperación de contraseña
+    """
+    subject = 'Recuperación de Contraseña - Diagnóstico IA'
+    
+    message = f"""
+    Hola {recipient_name},
+
+    Has solicitado restablecer tu contraseña para el sistema de Diagnóstico Asistido por IA.
+
+    Para crear una nueva contraseña, haz clic en el siguiente enlace:
+    {reset_link}
+
+    Este enlace expirará en 15 minutos por seguridad.
+
+    Si no solicitaste este cambio, ignora este mensaje y tu contraseña permanecerá sin cambios.
+
+    Saludos,
+    Equipo de Diagnóstico IA
+    Universidad Nacional de Colombia
+    """
+    
+    html_message = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            .header {{
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+            }}
+            .content {{
+                background: #f8f9fa;
+                padding: 30px;
+                border-radius: 0 0 10px 10px;
+            }}
+            .button {{
+                display: inline-block;
+                padding: 15px 30px;
+                background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                margin: 20px 0;
+            }}
+            .footer {{
+                text-align: center;
+                margin-top: 20px;
+                font-size: 12px;
+                color: #666;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🔑 Recuperación de Contraseña</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{recipient_name}</strong>,</p>
+            
+            <p>Has solicitado restablecer tu contraseña para el sistema de <strong>Diagnóstico Asistido por IA</strong>.</p>
+            
+            <p>Para crear una nueva contraseña, haz clic en el siguiente botón:</p>
+            
+            <center>
+                <a href="{reset_link}" class="button">Restablecer Contraseña</a>
+            </center>
+            
+            <p><small>O copia y pega este enlace en tu navegador:<br>
+            <a href="{reset_link}">{reset_link}</a></small></p>
+            
+            <p><strong>⏱️ Este enlace expirará en 15 minutos por seguridad.</strong></p>
+            
+            <p>Si no solicitaste este cambio, ignora este mensaje y tu contraseña permanecerá sin cambios.</p>
+            
+            <p>Saludos,<br>
+            <strong>Equipo de Diagnóstico IA</strong><br>
+            Universidad Nacional de Colombia</p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient_email],
+        html_message=html_message,
+        fail_silently=False,
+    )

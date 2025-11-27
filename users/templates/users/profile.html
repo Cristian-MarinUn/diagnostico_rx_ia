@@ -1,13 +1,20 @@
-<!-- ================================ -->
-<!-- ARCHIVO: authentication/templates/authentication/profile.html -->
-<!-- ================================ -->
+<!-- ================================ USER -->
+<!-- ARCHIVO: Users/templates/users/profile.html -->
+<!-- ================================ USER -->
 {% extends 'core/base.html' %}
 {% load static %}
 
 {% block title %}Mi Perfil - {{ user.get_full_name }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'users/css/profile.css' %}">
+{% comment %} Añadimos un query param para busting de caché y un estilo inline de diagnóstico/override {% endcomment %}
+<link rel="stylesheet" href="{% static 'users/css/profile.css' %}?v=2">
+<style>
+/* Override rápido para asegurar que el fondo del perfil use el degradado oscuro */
+.profile-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -45,7 +52,7 @@
                     <span>✏️</span>
                     <span>Editar Perfil</span>
                 </a>
-                <a href="#" class="btn btn-secondary">
+                <a href="{% url 'users:change_password' %}" class="btn btn-secondary">
                     <span>🔒</span>
                     <span>Cambiar Contraseña</span>
                 </a>
@@ -242,21 +249,7 @@
     </div>
 </div>
 
-<!-- Modal de confirmación para cerrar sesión -->
-<div id="closeSessionModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>¿Cerrar esta sesión?</h3>
-        </div>
-        <div class="modal-body">
-            <p>Esta acción cerrará la sesión seleccionada inmediatamente.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" id="cancelCloseSession">Cancelar</button>
-            <button class="btn btn-danger" id="confirmCloseSession">Cerrar Sesión</button>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block extra_js %}

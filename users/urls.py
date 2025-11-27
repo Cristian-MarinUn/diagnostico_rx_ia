@@ -1,11 +1,15 @@
 from django.urls import path
-from .views import ProfileView, DashboardView, AdminDashboardView, UserCreateView
+from . import views
 
 app_name = 'users'
 
 urlpatterns = [
-    path('profile/', ProfileView.as_view(), name='profile'),
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
-    path('admin-dashboard/', AdminDashboardView.as_view(), name='admin_dashboard'),
-    path('admin/users/create/', UserCreateView.as_view(), name='user_create'),
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/change-password/', views.change_password_view, name='change_password'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('dashboard/user/', views.user_dashboard_view, name='user_dashboard'),
+    path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
+    path('dashboard/admin/user/create/', views.user_create_view, name='user_create'),
 ]
+
+

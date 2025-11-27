@@ -1,7 +1,7 @@
 <!-- ================================ -->
 <!-- ARCHIVO: users/templates/users/user_create.html (ACTUALIZADO) -->
 <!-- ================================ -->
-{% extends 'users/dashboard.html' %}
+{% extends 'core/base.html' %}
 {% load static %}
 
 {% block title %}Crear Usuario - {{ user.get_full_name }}{% endblock %}
@@ -11,11 +11,12 @@
 <style>
     /* Estilos específicos del formulario */
     .form-card {
-        background: white;
-        border: 1px solid var(--border);
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
         border-radius: 12px;
         padding: 2rem;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         margin-bottom: 1.5rem;
     }
 
@@ -25,22 +26,22 @@
         gap: 0.5rem;
         margin-bottom: 1.5rem;
         font-size: 0.875rem;
-        color: #6b7280;
+        color: #94a3b8;
     }
 
     .breadcrumb a {
-        color: #6b7280;
+        color: #94a3b8;
         text-decoration: none;
     }
 
     .breadcrumb a:hover {
-        color: var(--accent);
+        color: #667eea;
     }
 
     .form-section {
         margin-bottom: 2rem;
         padding-bottom: 2rem;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
     }
 
     .form-section:last-of-type {
@@ -50,7 +51,7 @@
     .section-title {
         font-size: 1.125rem;
         font-weight: 600;
-        color: #111827;
+        color: #f1f5f9;
         margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
@@ -72,7 +73,7 @@
     .form-label {
         font-size: 0.875rem;
         font-weight: 600;
-        color: #374151;
+        color: #cbd5e1;
     }
 
     .required {
@@ -81,28 +82,33 @@
 
     .form-control {
         padding: 0.75rem 1rem;
-        border: 1px solid var(--border);
+        border: 1px solid rgba(51, 65, 85, 0.6);
         border-radius: 8px;
         font-size: 0.9375rem;
-        background: #f9fafb;
+        background: rgba(15, 23, 42, 0.6);
+        color: #f1f5f9;
         transition: all 0.2s;
     }
 
     .form-control:focus {
         outline: none;
-        border-color: var(--accent);
-        background: white;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        border-color: #667eea;
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+
+    .form-control::placeholder {
+        color: #64748b;
     }
 
     .form-help {
         font-size: 0.8125rem;
-        color: #6b7280;
+        color: #94a3b8;
     }
 
     select.form-control {
         appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23CBD5E1' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: right 1rem center;
         padding-right: 2.5rem;
@@ -134,7 +140,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #d1d5db;
+        background-color: rgba(51, 65, 85, 0.6);
         transition: 0.3s;
         border-radius: 24px;
     }
@@ -146,7 +152,7 @@
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background-color: white;
+        background-color: #e2e8f0;
         transition: 0.3s;
         border-radius: 50%;
     }
@@ -163,8 +169,8 @@
         display: flex;
         gap: 1rem;
         padding: 1rem;
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
         border-radius: 8px;
         margin-bottom: 1.5rem;
     }
@@ -175,7 +181,7 @@
 
     .info-text {
         font-size: 0.875rem;
-        color: #374151;
+        color: #cbd5e1;
         line-height: 1.5;
     }
 
@@ -200,22 +206,24 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
     }
 
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
     }
 
     .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
+        background: rgba(51, 65, 85, 0.6);
+        color: #cbd5e1;
+        border: 1px solid rgba(51, 65, 85, 0.8);
     }
 
     .btn-secondary:hover {
-        background: #e5e7eb;
+        background: rgba(51, 65, 85, 0.8);
+        color: #f1f5f9;
     }
 
     .alert {
@@ -228,15 +236,15 @@
     }
 
     .alert-success {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        color: #166534;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
     }
 
     .alert-error {
-        background: #fef2f2;
-        border: 1px solid #fca5a5;
-        color: #991b1b;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
     }
 
     @media (max-width: 768px) {
@@ -265,8 +273,11 @@
 {% block page_subtitle %}Registrar nuevo usuario en el sistema{% endblock %}
 
 {% block content %}
-<!-- Breadcrumb -->
-<div class="breadcrumb">
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
     <a href="{% url 'users:admin_dashboard' %}">Dashboard</a>
     <span>›</span>
     <span>Crear Usuario</span>
@@ -416,6 +427,9 @@
             </button>
         </div>
     </form>
+        </div>
+
+    </div>
 </div>
 {% endblock %}
 

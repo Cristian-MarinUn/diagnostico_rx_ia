@@ -3,436 +3,477 @@
 # ================================
 
 from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count, Q
+from django.utils import timezone
+from datetime import timedelta
 from authentication.models import User, Session, Log
+from django.utils.crypto import get_random_string
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views import View
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from authentication.models import User, Log
-import secrets
-import string
+# ================================
+# PERFIL DE USUARIO
+# ================================
 
-
-def get_client_ip(request):
-    """Obtiene la IP del cliente"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
-class ProfileView(LoginRequiredMixin, View):
-    """Vista para visualizar perfil de usuario - CU-007"""
-
-    login_url = '/auth/login/'
-    template_name = 'users/profile.html'
-
-    def get(self, request):
-        """Muestra el perfil del usuario autenticado"""
-        user = request.user
-
-        try:
-            # Obtener información adicional del usuario
-            # Sesiones activas
-            active_sessions = Session.objects.filter(
-                user=user,
-                is_active=True
-            ).order_by('-login_time')
-
-            # Última sesión
-            last_session = Session.objects.filter(
-                user=user
-            ).order_by('-login_time').first()
-
-            # Logs recientes del usuario
-            recent_logs = Log.objects.filter(
-                user=user
-            ).order_by('-timestamp')[:5]
-
-            # Estadísticas básicas
-            total_logins = Log.objects.filter(
-                user=user,
-                accion='LOGIN_SUCCESS'
-            ).count()
-
-            context = {
-                'user_data': {
-                    'nombre_completo': user.get_full_name(),
-                    'email': user.email,
-                    'identificacion': user.identificacion,
-                    'rol': user.get_rol_display(),
-                    'telefono': user.telefono or 'No especificado',
-                    'estado': 'Activo' if user.estado else 'Inactivo',
-                    'fecha_registro': user.fecha_registro,
-                    'ultimo_acceso': user.ultimo_acceso,
-                },
-                'active_sessions': active_sessions,
-                'last_session': last_session,
-                'recent_logs': recent_logs,
-                'statistics': {
-                    'total_logins': total_logins,
-                    'active_sessions_count': active_sessions.count(),
-                }
-            }
-
-            return render(request, self.template_name, context)
-
-        except Exception as e:
-            # Flujo Alternativo A1: Error al recuperar datos
-            Log.objects.create(
-                user=user,
-                accion='USER_UPDATED',
-                nivel='ERROR',
-                descripcion=f'Error al cargar perfil: {str(e)}',
-                ip_address=get_client_ip(request)
-            )
-
-            messages.error(request, 'No fue posible cargar tu perfil. Intenta nuevamente más tarde.')
-            return redirect('core:home')
-
-
-class DashboardView(LoginRequiredMixin, View):
-    """Vista del dashboard de usuario - muestra layout principal para usuarios autenticados"""
-
-    login_url = '/auth/login/'
-    template_name = 'users/dashboard.html'
-
-    def get(self, request):
-        user = request.user
-
-        # Datos resumidos para el dashboard
-        active_sessions = Session.objects.filter(user=user, is_active=True).order_by('-login_time')
-        total_logins = Log.objects.filter(user=user, accion='LOGIN_SUCCESS').count()
-
+@login_required
+def profile_view(request):
+    """
+    Vista para visualizar el perfil del usuario autenticado
+    """
+    user = request.user
+    
+    try:
+        # Obtener información adicional del usuario
+        active_sessions = Session.objects.filter(
+            user=user,
+            is_active=True
+        ).order_by('-login_time')
+        
+        total_logins = Log.objects.filter(
+            user=user,
+            accion='LOGIN_SUCCESS'
+        ).count()
+        
+        recent_logs = Log.objects.filter(
+            user=user
+        ).order_by('-timestamp')[:5]
+        
         context = {
-            'user': user,
+            'user_data': {
+                'nombre_completo': user.get_full_name(),
+                'email': user.email,
+                'identificacion': user.identificacion,
+                'rol': user.get_rol_display(),
+                'telefono': user.telefono or 'No especificado',
+                'estado': 'Activo' if user.estado else 'Inactivo',
+                'fecha_registro': user.fecha_registro,
+                'ultimo_acceso': user.ultimo_acceso,
+            },
+            'active_sessions': active_sessions,
+            'recent_logs': recent_logs,
             'statistics': {
                 'total_logins': total_logins,
                 'active_sessions_count': active_sessions.count(),
-            },
+            }
         }
+        
+        return render(request, 'users/profile.html', context)
+        
+    except Exception as e:
+        messages.error(request, 'No fue posible cargar tu perfil. Intenta nuevamente más tarde.')
+        return redirect('users:dashboard')
 
-        return render(request, self.template_name, context)
-
-
-class AdminDashboardView(LoginRequiredMixin, View):
-    """Dashboard exclusivo para administradores."""
-
-    login_url = '/auth/login/'
-    template_name = 'users/admin_dashboard.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        # Verificar que el usuario sea administrador
-        user = request.user
-        if not getattr(user, 'rol', None) == 'ADMINISTRADOR':
-            # No es admin: redirigir al dashboard general
-            return redirect('users:dashboard')
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request):
-        user = request.user
-        # Datos y métricas que podrían interesar al administrador
-        total_users = User.objects.count()
-        total_sessions = Session.objects.count()
-        total_logs = Log.objects.count()
-
-        # Proveer también un dict `statistics` para mantener compatibilidad
-        # con la plantilla que puede esperar `statistics.total_logins` y
-        # `statistics.active_sessions_count`.
-        statistics = {
-            'total_logins': total_logs,
-            'active_sessions_count': total_sessions,
-        }
-
-        context = {
-            'user': user,
-            'metrics': {
-                'total_users': total_users,
-                'total_sessions': total_sessions,
-                'total_logs': total_logs,
-            },
-            'statistics': statistics,
-        }
-
-        return render(request, self.template_name, context)
 # ================================
-#crear usuarios
-def get_client_ip(request):
-    """Obtiene la IP del cliente"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+# DASHBOARD GENERAL
+# ================================
+
+@login_required
+def dashboard_view(request):
+    """
+    Vista principal del dashboard que redirige según el rol del usuario
+    """
+    user = request.user
+    
+    # Redirigir según el rol
+    if user.rol == 'ADMINISTRADOR':
+        return redirect('users:admin_dashboard')
+    elif user.rol == 'MEDICO_RADIOLOGO':
+        return redirect('users:user_dashboard')
+    elif user.rol == 'TECNICO_SALUD':
+        return redirect('users:user_dashboard')
     else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        messages.error(request, 'No tienes un rol asignado válido.')
+        return redirect('core:home')
 
+# ================================
+# DASHBOARD DE USUARIO (MÉDICO/TÉCNICO)
+# ================================
 
-class AdminDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """Vista del dashboard de administrador"""
+@login_required
+def user_dashboard_view(request):
+    """
+    Dashboard para médicos radiólogos y técnicos de salud
+    """
+    user = request.user
     
-    login_url = '/auth/login/'
-    template_name = 'users/admin_dashboard.html'
-    
-    def test_func(self):
-        """Solo administradores pueden acceder"""
-        return self.request.user.rol == 'ADMINISTRADOR'
-    
-    def handle_no_permission(self):
-        """Manejo de acceso denegado"""
-        messages.error(self.request, 'No tienes permisos para acceder a esta sección.')
+    # Verificar que el usuario tenga un rol apropiado
+    if user.rol not in ['MEDICO_RADIOLOGO', 'TECNICO_SALUD']:
+        messages.error(request, 'No tienes permisos para acceder a esta sección.')
         return redirect('core:home')
     
-    def get(self, request):
-        """Muestra el dashboard del administrador"""
-        # Estadísticas generales
-        total_users = User.objects.all().count()
-        active_users = User.objects.filter(estado=True).count()
-        inactive_users = User.objects.filter(estado=False).count()
-        
-        # Usuarios por rol
-        admins = User.objects.filter(rol='ADMINISTRADOR').count()
-        medicos = User.objects.filter(rol='MEDICO_RADIOLOGO').count()
-        tecnicos = User.objects.filter(rol='TECNICO_SALUD').count()
-        
-        # Usuarios recientes
-        recent_users = User.objects.all().order_by('-fecha_registro')[:5]
-        
-        # Actividad reciente
-        recent_activity = Log.objects.all().order_by('-timestamp')[:10]
-        
-        context = {
-            'statistics': {
-                'total_users': total_users,
-                'active_users': active_users,
-                'inactive_users': inactive_users,
-                'admins': admins,
-                'medicos': medicos,
-                'tecnicos': tecnicos,
-            },
-            'recent_users': recent_users,
-            'recent_activity': recent_activity,
+    # Datos base
+    context = {
+        'user': user,
+    }
+    
+    # Estadísticas según el rol
+    if user.rol == 'MEDICO_RADIOLOGO':
+        context.update(get_medico_stats(user))
+        context['recent_activities'] = get_recent_activities_medico(user)
+    elif user.rol == 'TECNICO_SALUD':
+        context.update(get_tecnico_stats(user))
+        context['recent_activities'] = get_recent_activities_tecnico(user)
+    
+    return render(request, 'users/user_dashboard.html', context)
+
+def get_medico_stats(user):
+    """
+    Obtiene estadísticas para médicos radiólogos
+    """
+    # TODO: Implementar con modelos reales cuando estén disponibles
+    stats = {
+        'total_estudios': 0,  # Conteo de estudios asignados
+        'total_diagnosticos': 0,  # Diagnósticos completados
+        'pendientes': 0,  # Diagnósticos pendientes
+        'precision_ia': '94.2',  # Precisión promedio de la IA
+    }
+    
+    # Ejemplo de cómo obtenerlo cuando tengas los modelos:
+    # from diagnosis.models import Diagnosis
+    # stats['total_diagnosticos'] = Diagnosis.objects.filter(
+    #     medico=user,
+    #     estado='FINALIZADO'
+    # ).count()
+    
+    return stats
+
+def get_tecnico_stats(user):
+    """
+    Obtiene estadísticas para técnicos de salud
+    """
+    # TODO: Implementar con modelos reales cuando estén disponibles
+    stats = {
+        'total_estudios': 0,
+        'imagenes_cargadas': 0,  # Total de imágenes cargadas
+        'en_proceso': 0,  # Imágenes siendo procesadas
+        'completados': 0,  # Estudios completados hoy
+    }
+    
+    # Ejemplo de cómo obtenerlo cuando tengas los modelos:
+    # from images.models import MedicalImage
+    # stats['imagenes_cargadas'] = MedicalImage.objects.filter(
+    #     tecnico_carga=user
+    # ).count()
+    
+    return stats
+
+def get_recent_activities_medico(user):
+    """
+    Obtiene actividades recientes del médico
+    """
+    # Datos de ejemplo - reemplazar con consultas reales
+    activities = [
+        {
+            'icon': '🔍',
+            'type': 'primary',
+            'title': 'Diagnóstico completado',
+            'description': 'Análisis de radiografía de tórax - Paciente: Juan Pérez',
+            'time': 'Hace 2 horas',
+            'status': 'success',
+            'status_text': 'Completado'
+        },
+        {
+            'icon': '📊',
+            'type': 'info',
+            'title': 'Análisis IA solicitado',
+            'description': 'Solicitud de análisis para estudio #1234',
+            'time': 'Hace 4 horas',
+            'status': 'warning',
+            'status_text': 'En proceso'
+        },
+        {
+            'icon': '✅',
+            'type': 'success',
+            'title': 'Reporte generado',
+            'description': 'Reporte mensual de diagnósticos exportado',
+            'time': 'Ayer',
+            'status': 'success',
+            'status_text': 'Completado'
         }
-        
-        return render(request, self.template_name, context)
+    ]
+    
+    return activities
+
+def get_recent_activities_tecnico(user):
+    """
+    Obtiene actividades recientes del técnico
+    """
+    # Datos de ejemplo - reemplazar con consultas reales
+    activities = [
+        {
+            'icon': '📤',
+            'type': 'success',
+            'title': 'Imágenes cargadas',
+            'description': '5 imágenes radiológicas subidas al sistema',
+            'time': 'Hace 1 hora',
+            'status': 'success',
+            'status_text': 'Completado'
+        },
+        {
+            'icon': '⚙️',
+            'type': 'warning',
+            'title': 'Procesamiento en curso',
+            'description': '3 imágenes siendo analizadas por IA',
+            'time': 'Hace 2 horas',
+            'status': 'warning',
+            'status_text': 'Procesando'
+        },
+        {
+            'icon': '✅',
+            'type': 'info',
+            'title': 'Carga completada',
+            'description': 'Estudio #5678 completado y notificado',
+            'time': 'Hace 3 horas',
+            'status': 'success',
+            'status_text': 'Notificado'
+        }
+    ]
+    
+    return activities
+
+# ================================
+# DASHBOARD DE ADMINISTRADOR
+# ================================
+
+@login_required
+def admin_dashboard_view(request):
+    """
+    Dashboard para administradores del sistema
+    """
+    user = request.user
+    
+    # Verificar que el usuario sea administrador
+    if user.rol != 'ADMINISTRADOR':
+        messages.error(request, 'No tienes permisos de administrador.')
+        return redirect('users:user_dashboard')
+    
+    # Estadísticas generales del sistema
+    stats = get_admin_stats()
+    
+    # Usuarios recientes
+    recent_users = get_recent_users()
+    
+    # Actividad del sistema
+    system_activities = get_system_activities()
+    
+    context = {
+        'user': user,
+        'total_usuarios': stats['total_usuarios'],
+        'total_medicos': stats['total_medicos'],
+        'total_tecnicos': stats['total_tecnicos'],
+        'total_diagnosticos': stats['total_diagnosticos'],
+        'total_imagenes': stats['total_imagenes'],
+        'precision_sistema': stats['precision_sistema'],
+        'recent_users': recent_users,
+        'system_activities': system_activities,
+    }
+    
+    return render(request, 'users/admin_dashboard.html', context)
 
 
-class UserCreateView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """Vista para crear nuevo usuario - CU-004"""
-    
-    login_url = '/auth/login/'
-    template_name = 'users/user_create.html'
-    
-    def test_func(self):
-        """Solo administradores pueden crear usuarios"""
-        return self.request.user.rol == 'ADMINISTRADOR'
-    
-    def handle_no_permission(self):
-        messages.error(self.request, 'No tienes permisos para crear usuarios.')
+@login_required
+def user_create_view(request):
+    """
+    Vista para crear un usuario desde el panel de administración.
+    """
+    # Solo administradores pueden crear usuarios
+    if request.user.rol != 'ADMINISTRADOR':
+        messages.error(request, 'No tienes permisos para crear usuarios.')
         return redirect('users:admin_dashboard')
-    
-    def get(self, request):
-        """Muestra el formulario de registro"""
-        context = {
-            'roles': User.ROLES,
-        }
-        return render(request, self.template_name, context)
-    
-    def post(self, request):
-        """Procesa el registro de nuevo usuario"""
-        
-        # Paso 4-5: Obtener datos del formulario
+
+    roles = User.ROLES
+
+    if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        email = request.POST.get('email', '').strip().lower()
-        identificacion = request.POST.get('identificacion', '').strip()
-        rol = request.POST.get('rol', '').strip()
-        estado = request.POST.get('estado', 'on') == 'on'
-        
-        # Paso 6: Validar campos requeridos
-        if not all([first_name, last_name, email, identificacion, rol]):
-            messages.error(request, 'Complete los campos obligatorios.')
-            return render(request, self.template_name, {
-                'roles': User.ROLES,
-                'form_data': request.POST
+        identificacion = request.POST.get('identificacion', '').strip() or None
+        email = request.POST.get('email', '').strip()
+        rol = request.POST.get('rol') or 'TECNICO_SALUD'
+        estado = True if request.POST.get('estado') in ['on', 'true', 'True', '1'] else False
+
+        form_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'identificacion': identificacion,
+            'email': email,
+            'rol': rol,
+            'estado': estado,
+        }
+
+        # Validaciones básicas
+        if not (first_name and last_name and email and rol):
+            messages.error(request, 'Por favor completa los campos requeridos.')
+            return render(request, 'users/user_create.html', {
+                'form_data': form_data,
+                'roles': roles,
             })
-        
-        # Validar formato de email
-        import re
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, email):
-            messages.error(request, 'Formato de correo electrónico inválido.')
-            return render(request, self.template_name, {
-                'roles': User.ROLES,
-                'form_data': request.POST
-            })
-        
-        # Paso 6: Verificar si el email ya existe (Flujo A1)
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'El correo ingresado ya se encuentra registrado. Verifique la información.')
-            return render(request, self.template_name, {
-                'roles': User.ROLES,
-                'form_data': request.POST
-            })
-        
-        # Verificar si la identificación ya existe
-        if User.objects.filter(identificacion=identificacion).exists():
-            messages.error(request, 'La identificación ingresada ya se encuentra registrada.')
-            return render(request, self.template_name, {
-                'roles': User.ROLES,
-                'form_data': request.POST
-            })
-        
-        # Paso 7.2: Generar contraseña temporal
-        password_temporal = self.generate_temp_password()
-        
+
+        # Generar contraseña temporal
+        temp_password = get_random_string(10)
+
         try:
-            # Paso 7.1: Crear usuario en la base de datos
             user = User.objects.create_user(
                 email=email,
-                password=password_temporal,
+                password=temp_password,
                 first_name=first_name,
                 last_name=last_name,
                 identificacion=identificacion,
                 rol=rol,
-                estado=estado
+                estado=estado,
             )
-            
-            # Paso 7.4: Enviar credenciales por correo
-            email_sent = self.send_credentials_email(
-                user=user,
-                password=password_temporal,
-                admin=request.user
-            )
-            
-            # Paso 8: Registrar evento en logs
+
+            # Registrar log (opcional)
             Log.objects.create(
                 user=request.user,
                 accion='USER_CREATED',
                 nivel='INFO',
-                descripcion=f'Usuario creado: {user.email} con rol {user.get_rol_display()}',
-                ip_address=get_client_ip(request),
-                datos_adicionales={
-                    'new_user_id': user.id,
-                    'new_user_email': user.email,
-                    'new_user_rol': user.rol,
-                    'email_sent': email_sent
-                }
+                descripcion=f'Usuario {user.get_full_name()} creado por {request.user.get_full_name()}',
             )
-            
-            # Paso 9: Mostrar mensaje de éxito
-            if email_sent:
-                messages.success(
-                    request, 
-                    f'Usuario {user.get_full_name()} registrado exitosamente. '
-                    f'Se han enviado las credenciales al correo {user.email}.'
-                )
-            else:
-                # Flujo Alternativo A3: Error en envío de correo
-                messages.warning(
-                    request,
-                    f'Usuario registrado, pero no se pudo enviar el correo con las credenciales. '
-                    f'Credenciales temporales: Email: {user.email} | Contraseña: {password_temporal}'
-                )
-            
-            # Redirigir a la lista de usuarios o dashboard
+
+            messages.success(request, f'Usuario creado correctamente. Contraseña temporal: {temp_password}')
             return redirect('users:admin_dashboard')
-            
+
         except Exception as e:
-            # Error general
-            messages.error(request, f'Error al crear el usuario: {str(e)}')
+            messages.error(request, f'Error al crear usuario: {e}')
+            return render(request, 'users/user_create.html', {
+                'form_data': form_data,
+                'roles': roles,
+            })
+
+    # GET
+    context = {
+        'form_data': {},
+        'roles': roles,
+    }
+    return render(request, 'users/user_create.html', context)
+
+
+@login_required
+def change_password_view(request):
+    """
+    Vista para que los usuarios cambien su contraseña.
+    """
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '').strip()
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+        
+        # Validaciones
+        if not current_password:
+            messages.error(request, 'Debes ingresar tu contraseña actual.')
+            return render(request, 'users/change_password.html')
+        
+        if not new_password:
+            messages.error(request, 'Debes ingresar una nueva contraseña.')
+            return render(request, 'users/change_password.html')
+        
+        if new_password != confirm_password:
+            messages.error(request, 'Las contraseñas no coinciden.')
+            return render(request, 'users/change_password.html')
+        
+        # Verificar contraseña actual
+        if not request.user.check_password(current_password):
+            messages.error(request, 'La contraseña actual es incorrecta.')
+            return render(request, 'users/change_password.html')
+        
+        # Validar que la nueva contraseña sea diferente
+        if request.user.check_password(new_password):
+            messages.error(request, 'La nueva contraseña debe ser diferente a la actual.')
+            return render(request, 'users/change_password.html')
+        
+        # Validar longitud mínima
+        if len(new_password) < 8:
+            messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+            return render(request, 'users/change_password.html')
+        
+        try:
+            # Cambiar contraseña
+            request.user.set_password(new_password)
+            request.user.save()
             
-            # Registrar error en logs
+            # Registrar cambio en logs
             Log.objects.create(
                 user=request.user,
-                accion='USER_CREATED',
-                nivel='ERROR',
-                descripcion=f'Error al crear usuario: {str(e)}',
-                ip_address=get_client_ip(request)
+                accion='PASSWORD_CHANGE',
+                nivel='INFO',
+                descripcion=f'Cambio de contraseña realizado por el usuario',
             )
             
-            return render(request, self.template_name, {
-                'roles': User.ROLES,
-                'form_data': request.POST
-            })
-    
-    def generate_temp_password(self, length=12):
-        """Genera una contraseña temporal segura"""
-        # Incluir mayúsculas, minúsculas, números y símbolos
-        characters = string.ascii_letters + string.digits + "!@#$%&*"
-        
-        # Asegurar al menos uno de cada tipo
-        password = [
-            secrets.choice(string.ascii_uppercase),
-            secrets.choice(string.ascii_lowercase),
-            secrets.choice(string.digits),
-            secrets.choice("!@#$%&*")
-        ]
-        
-        # Completar el resto
-        password.extend(secrets.choice(characters) for _ in range(length - 4))
-        
-        # Mezclar
-        password_list = list(password)
-        secrets.SystemRandom().shuffle(password_list)
-        
-        return ''.join(password_list)
-    
-    def send_credentials_email(self, user, password, admin):
-        """Envía las credenciales por correo electrónico"""
-        try:
-            subject = 'Bienvenido al Sistema de Diagnóstico IA'
-            message = f"""
-Hola {user.get_full_name()},
-
-Has sido registrado en el Sistema de Diagnóstico Asistido por IA.
-
-Tus credenciales de acceso son:
-
-Email: {user.email}
-Contraseña temporal: {password}
-
-Por seguridad, te recomendamos cambiar tu contraseña en el primer inicio de sesión.
-
-Puedes acceder al sistema en: {settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost:8000'}
-
-Rol asignado: {user.get_rol_display()}
-
-Si tienes alguna pregunta, contacta al administrador.
-
----
-Este correo fue enviado por: {admin.get_full_name()}
-Sistema de Diagnóstico IA - Universidad Nacional de Colombia
-            """
-            
-            # Enviar correo
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
-            
-            return True
+            messages.success(request, 'Tu contraseña ha sido actualizada correctamente.')
+            return redirect('users:profile')
             
         except Exception as e:
-            # Registrar error pero no fallar la creación del usuario
-            Log.objects.create(
-                accion='USER_CREATED',
-                nivel='ERROR',
-                descripcion=f'Error al enviar correo de credenciales: {str(e)}',
-                ip_address=get_client_ip(self.request),
-                datos_adicionales={
-                    'user_email': user.email,
-                    'error': str(e)
-                }
-            )
-            return False
+            messages.error(request, f'Error al cambiar contraseña: {str(e)}')
+            return render(request, 'users/change_password.html')
+    
+    # GET
+    return render(request, 'users/change_password.html')
+
+def get_admin_stats():
+    """
+    Obtiene estadísticas generales del sistema para el admin
+    """
+    stats = {
+        'total_usuarios': User.objects.filter(is_active=True).count(),
+        'total_medicos': User.objects.filter(rol='MEDICO_RADIOLOGO', is_active=True).count(),
+        'total_tecnicos': User.objects.filter(rol='TECNICO_SALUD', is_active=True).count(),
+        'total_diagnosticos': 0,  # TODO: Implementar cuando exista el modelo
+        'total_imagenes': 0,  # TODO: Implementar cuando exista el modelo
+        'precision_sistema': '96.8',  # Puede venir de un modelo de configuración
+    }
+    
+    return stats
+
+def get_recent_users(limit=5):
+    """
+    Obtiene los usuarios más recientes del sistema
+    """
+    return User.objects.filter(
+        is_active=True
+    ).order_by('-fecha_registro')[:limit]
+
+def get_system_activities():
+    """
+    Obtiene las actividades recientes del sistema
+    """
+    # Datos de ejemplo - implementar con un modelo de logs real
+    activities = [
+        {
+            'icon': '👤',
+            'type': 'primary',
+            'title': 'Nuevo usuario registrado',
+            'description': 'Dr. María González - Médico Radiólogo',
+            'time': 'Hace 30 minutos',
+            'level': 'info',
+            'level_text': 'Info'
+        },
+        {
+            'icon': '📊',
+            'type': 'success',
+            'title': 'Sistema actualizado',
+            'description': 'Modelo de IA actualizado a versión 2.1',
+            'time': 'Hace 2 horas',
+            'level': 'success',
+            'level_text': 'Éxito'
+        },
+        {
+            'icon': '⚠️',
+            'type': 'warning',
+            'title': 'Mantenimiento programado',
+            'description': 'El sistema se actualizará el 25 de noviembre',
+            'time': 'Hace 1 día',
+            'level': 'warning',
+            'level_text': 'Advertencia'
+        },
+        {
+            'icon': '✅',
+            'type': 'info',
+            'title': 'Backup completado',
+            'description': 'Backup diario realizado exitosamente',
+            'time': 'Hace 1 día',
+            'level': 'success',
+            'level_text': 'Éxito'
+        }
+    ]
+    
+    return activities
