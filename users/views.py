@@ -42,7 +42,7 @@ def profile_view(request):
             'user_data': {
                 'nombre_completo': user.get_full_name(),
                 'email': user.email,
-                'identificacion': user.identificacion,
+                'identificacion': user.identificacion or 'No especificado',
                 'rol': user.get_rol_display(),
                 'telefono': user.telefono or 'No especificado',
                 'estado': 'Activo' if user.estado else 'Inactivo',
@@ -62,6 +62,65 @@ def profile_view(request):
     except Exception as e:
         messages.error(request, 'No fue posible cargar tu perfil. Intenta nuevamente más tarde.')
         return redirect('users:dashboard')
+
+@login_required
+def profile_edit_view(request):
+    """
+    Vista para editar el perfil del usuario autenticado
+    """
+    user = request.user
+    
+    if request.method == 'GET':
+        context = {
+            'user_data': {
+                'nombre_completo': user.get_full_name(),
+                'email': user.email,
+                'identificacion': user.identificacion,
+                'rol': user.get_rol_display(),
+                'telefono': user.telefono or '',
+                'fecha_registro': user.fecha_registro,
+                'ultimo_acceso': user.ultimo_acceso,
+            }
+        }
+        return render(request, 'users/profile_edit.html', context)
+    
+    elif request.method == 'POST':
+        try:
+            # Actualizar información del perfil
+            user.first_name = request.POST.get('first_name', '').strip()
+            user.last_name = request.POST.get('last_name', '').strip()
+            user.telefono = request.POST.get('telefono', '').strip()
+            
+            # Validar nombre completo
+            if not user.first_name or not user.last_name:
+                messages.error(request, 'El nombre y apellido son requeridos.')
+                return redirect('users:profile_edit')
+            
+            user.save()
+            
+            # Registrar cambios
+            Log.objects.create(
+                user=user,
+                accion='PROFILE_UPDATE',
+                descripcion=f'Usuario actualizó su perfil',
+                ip_address=get_client_ip(request)
+            )
+            
+            messages.success(request, 'Tu perfil ha sido actualizado exitosamente.')
+            return redirect('users:profile')
+            
+        except Exception as e:
+            messages.error(request, 'Error al actualizar tu perfil. Intenta nuevamente.')
+            return redirect('users:profile_edit')
+
+def get_client_ip(request):
+    """Obtiene la IP del cliente desde la solicitud"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 # ================================
 # DASHBOARD GENERAL

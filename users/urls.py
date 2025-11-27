@@ -5,6 +5,7 @@ app_name = 'users'
 
 urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
+    path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('dashboard/user/', views.user_dashboard_view, name='user_dashboard'),
