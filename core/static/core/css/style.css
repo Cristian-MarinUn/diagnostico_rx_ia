@@ -315,7 +315,7 @@ main {
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--glass-border);
     padding: 4rem 0 2rem;
-    margin-top: 6rem;
+    margin-top: 0;
     position: relative;
 }
 
@@ -670,7 +670,7 @@ main {
     
     .footer {
         padding: 3rem 0 1.5rem;
-        margin-top: 4rem;
+        margin-top: 0;
     }
     
     .footer-content {
@@ -759,3 +759,32 @@ main {
 
 /* El diseño ya está en modo oscuro por defecto */
 /* Si necesitas modo claro, puedes agregar una clase .light-mode */
+
+/* Ensure footer sits flush with previous section (no top gap) */
+.carousel-section + .footer,
+.hero-carousel + .footer,
+.carousel + .footer {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Defensive resets to remove any remaining gaps before footer */
+footer, .footer {
+    margin-top: 0 !important;
+}
+
+main, .hero-carousel {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Ensure the last element inside main doesn't add extra bottom margin */
+main > *:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.carousel-section, .carousel {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}

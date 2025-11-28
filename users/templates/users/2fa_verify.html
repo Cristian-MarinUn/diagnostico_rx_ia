@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Verificación 2FA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding:3rem 0; text-align:center;">
+    <div class="card" style="max-width:640px; margin:0 auto;">
+        <h2>Verificación de Dos Factores</h2>
+        <p>Por ahora puedes omitir la verificación si estás probando el frontend.</p>
+
+        <form method="post" style="margin-top:1.5rem;">
+            {% csrf_token %}
+            <div style="display:flex; gap:1rem; justify-content:center;">
+                <button type="submit" name="bypass" value="1" class="btn btn-primary">Omitir verificación (temporal)</button>
+                <a href="{% url 'users:dashboard' %}" class="btn btn-outline">Volver al dashboard</a>
+            </div>
+        </form>
+
+        <p style="margin-top:1rem; color:var(--text-secondary); font-size:0.9rem;">Recuerda: esto solo ignora la comprobación en el lado del frontend. Implementa la verificación segura en el backend antes de pasar a producción.</p>
+    </div>
+</div>
+{% endblock %}

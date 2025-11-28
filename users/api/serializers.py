@@ -148,3 +148,5 @@ class RestrictedFieldsSerializer(serializers.Serializer):
     message = serializers.CharField(
         help_text="Mensaje de advertencia"
     )
+
+

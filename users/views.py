@@ -14,6 +14,10 @@ from django.core.paginator import Paginator
 from datetime import timedelta
 from authentication.models import User, Session, Log
 from django.utils.crypto import get_random_string
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
+from django.middleware.csrf import get_token
 
 # ================================
 # PERFIL DE USUARIO
@@ -293,6 +297,39 @@ def get_recent_activities_tecnico(user):
     ]
     
     return activities
+
+
+# ================================
+# 2FA - Simple Verify Page (frontend bypass)
+# ================================
+
+
+@method_decorator(login_required, name='dispatch')
+class Verify2FAView(View):
+    """
+    Simple 2FA verification view for frontend testing.
+    GET: render a page asking for the 2FA code (or allow bypass).
+    POST: if 'bypass' provided, set a session flag and redirect to dashboard.
+    NOTE: This is a temporary frontend-only bypass; backend verification should be
+    implemented later.
+    """
+    template_name = 'users/2fa_verify.html'
+
+    def get(self, request, *args, **kwargs):
+        # Ensure CSRF token is available in template
+        get_token(request)
+        return render(request, self.template_name, {})
+
+    def post(self, request, *args, **kwargs):
+        # Temporary bypass button: sets session flag and redirects
+        if request.POST.get('bypass'):
+            request.session['2fa_verified'] = True
+            messages.success(request, 'Verificación 2FA marcada como completada (temporal).')
+            return redirect('users:dashboard')
+
+        # Otherwise, you can implement real verification here later
+        messages.error(request, 'Código inválido o verificación no implementada aún.')
+        return redirect('users:2fa-verify')
 
 # ================================
 # DASHBOARD DE ADMINISTRADOR

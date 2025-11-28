@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from .views import Verify2FAView
 app_name = 'users'
 
 urlpatterns = [
@@ -12,6 +12,41 @@ urlpatterns = [
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
     path('dashboard/admin/user/create/', views.user_create_view, name='user_create'),
     path('dashboard/admin/list/', views.user_list_view, name='user_list'),
+
+# ========== CU-006: Autenticación de Dos Factores ==========
+    path(
+        '2fa/verify/',
+        Verify2FAView.as_view(),
+        name='2fa-verify'
+    ),
+    
+    # TODO: Implement remaining 2FA views in views.py
+    # - Enable2FAView
+    # - Disable2FAView
+    # - Request2FACodeView
+    # - TwoFactorStatusView
+    # Once implemented, uncomment the URL patterns below:
+    
+    # path(
+    #     '2fa/enable/',
+    #     Enable2FAView.as_view(),
+    #     name='2fa-enable'
+    # ),
+    # path(
+    #     '2fa/disable/',
+    #     Disable2FAView.as_view(),
+    #     name='2fa-disable'
+    # ),
+    # path(
+    #     '2fa/request-code/',
+    #     Request2FACodeView.as_view(),
+    #     name='2fa-request-code'
+    # ),
+    # path(
+    #     '2fa/status/',
+    #     TwoFactorStatusView.as_view(),
+    #     name='2fa-status'
+    # ),
 ]
 
 

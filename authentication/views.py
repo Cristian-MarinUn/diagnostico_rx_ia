@@ -112,17 +112,22 @@ class LoginView(View):
         else:
             request.session.set_expiry(86400)  # 24 horas
 
+        # Redirigir a verificación 2FA (temporal frontend bypass)
+        # TODO: Implementar verificación real 2FA en backend
+        messages.info(request, 'Por favor verifica tu identidad.')
+        return redirect(reverse('users:2fa-verify'))
+
         # Si el usuario debe cambiar la contraseña en el primer acceso,
         # redirigirlo a la vista de cambio de contraseña antes del dashboard.
-        if getattr(user, 'must_change_password', False):
-            messages.info(request, 'Debes cambiar tu contraseña en el primer acceso.')
-            return redirect(reverse('users:change_password'))
+        # if getattr(user, 'must_change_password', False):
+        #     messages.info(request, 'Debes cambiar tu contraseña en el primer acceso.')
+        #     return redirect(reverse('users:change_password'))
 
         # Paso 21-23: Redirigir al dashboard según rol
-        messages.success(
-            request,
-            f'Bienvenido, {user.get_full_name()} ({user.get_rol_display()})')
-        return redirect(self.get_redirect_url(user))
+        # messages.success(
+        #     request,
+        #     f'Bienvenido, {user.get_full_name()} ({user.get_rol_display()})')
+        # return redirect(self.get_redirect_url(user))
 
     def get_redirect_url(self, user):
         """Determina la URL de redirección según el rol."""
@@ -463,3 +468,13 @@ def send_password_reset_email(recipient_email, recipient_name, reset_link):
         html_message=html_message,
         fail_silently=False,
     )
+
+
+
+
+
+
+
+
+
+
