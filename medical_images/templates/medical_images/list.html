@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Imágenes Médicas - Sistema de Diagnóstico IA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'medical_images/css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'users:user_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Imágenes Médicas</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-images me-2"></i>
+                        Imágenes Médicas
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Lista de imágenes médicas (En desarrollo)</p>
+                    <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                        Cargar Nueva Imagen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

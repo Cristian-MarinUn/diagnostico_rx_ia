@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'core',
     'authentication',
     'users',
+    'medical_images',
 
 
 

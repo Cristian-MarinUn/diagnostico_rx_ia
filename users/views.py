@@ -18,6 +18,8 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.middleware.csrf import get_token
+from .models import Patient
+from .forms import PatientRegistrationForm
 
 # ================================
 # PERFIL DE USUARIO
@@ -391,6 +393,58 @@ def user_list_view(request):
         'users_list': users_page,
     }
     return render(request, 'users/user_list.html', context)
+
+
+@login_required
+def patient_create_view(request):
+    """
+    Vista para crear un nuevo paciente.
+    Acceso: Médicos radiólogos y técnicos de salud
+    """
+    # Solo médicos y técnicos pueden crear pacientes
+    if request.user.rol not in ['MEDICO_RADIOLOGO', 'TECNICO_SALUD']:
+        messages.error(request, 'No tienes permisos para crear pacientes.')
+        return redirect('users:user_dashboard')
+    
+    if request.method == 'POST':
+        form = PatientRegistrationForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                # Crear paciente
+                patient = form.save(commit=False)
+                patient.created_by = request.user
+                patient.save()
+                
+                # Registrar log
+                Log.objects.create(
+                    user=request.user,
+                    accion='USER_CREATED',
+                    nivel='INFO',
+                    descripcion=f'Paciente {patient.get_full_name()} creado por {request.user.get_full_name()}',
+                )
+                
+                messages.success(
+                    request,
+                    f'Paciente {patient.get_full_name()} registrado correctamente.'
+                )
+                return redirect('users:user_dashboard')
+            
+            except Exception as e:
+                messages.error(request, f'Error al crear paciente: {str(e)}')
+        else:
+            # Mostrar errores del formulario
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = PatientRegistrationForm()
+    
+    context = {
+        'form': form,
+        'title': 'Crear Nuevo Paciente',
+    }
+    return render(request, 'users/patient_create.html', context)
 
 
 @login_required

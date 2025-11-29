@@ -85,7 +85,7 @@ body::before {
         radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(162, 117, 75, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 40% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    z-index: -1;
+    z-index: -3;
     pointer-events: none;
     animation: backgroundShift 15s ease-in-out infinite;
 }
@@ -298,6 +298,9 @@ main {
     margin-top: var(--navbar-height);
     position: relative;
     z-index: 1;
+    /* Increase main vertical space by 200px to give more room before footer */
+    /* padding-bottom: 100px; */
+    margin-bottom: 100px;
 }
 
 .container {
@@ -306,17 +309,22 @@ main {
     padding: 0 2rem;
 }
 
+
+
 /* ================================ */
 /* FOOTER */
 /* ================================ */
 
 .footer {
+    margin-top: 1px;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--glass-border);
-    padding: 4rem 0 2rem;
+    padding: 2rem 0 2rem;
     margin-top: 0;
     position: relative;
+    z-index: 50;
+    pointer-events: auto;
 }
 
 .footer::before {
@@ -330,7 +338,7 @@ main {
 }
 
 .footer .container {
-    max-width: 1400px;
+    max-width: 1300px;
     margin: 0 auto;
     padding: 0 2rem;
 }
@@ -338,7 +346,7 @@ main {
 .footer-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 3rem;
+    gap: 10rem;
     margin-bottom: 3rem;
 }
 
@@ -762,29 +770,43 @@ main {
 
 /* Ensure footer sits flush with previous section (no top gap) */
 .carousel-section + .footer,
-.hero-carousel + .footer,
 .carousel + .footer {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    margin-top: 0 ;
+    padding-top: 0 ;
 }
 
 /* Defensive resets to remove any remaining gaps before footer */
 footer, .footer {
-    margin-top: 0 !important;
+    margin-top: 0 ;
 }
 
-main, .hero-carousel {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+main {
+    margin-bottom: 0 ;
+    padding-bottom: 0 ;
 }
 
 /* Ensure the last element inside main doesn't add extra bottom margin */
 main > *:last-child {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+    margin-bottom: 0 ;
+    padding-bottom: 160px ;
 }
 
 .carousel-section, .carousel {
-    margin-bottom: 0 !important;
-    padding-bottom: 0 !important;
+    margin-bottom: 0 ;
+    padding-bottom: 0 ;
 }
+
+/* ================================ */
+/* Home page background (moved from home template) */
+/* Uses absolute static path to ensure correct loading from CSS file */
+body {
+    background-image: url('/static/img/2.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    /* blend a dark color so text remains readable */
+    background-color: rgba(2,6,23,0.6);
+    background-blend-mode: multiply;
+}
+

@@ -76,8 +76,8 @@ function initScrollAnimations() {
     const style = document.createElement('style');
     style.textContent = `
         .animate-in {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
+            opacity: 1;
+            transform: translateY(0);
         }
     `;
     document.head.appendChild(style);

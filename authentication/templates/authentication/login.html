@@ -8,6 +8,7 @@
 {% block extra_css %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'authentication/css/login.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'authentication/css/users_card.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -84,6 +85,33 @@
         <!-- Footer del formulario -->
         <div class="login-footer">
             <a href="{% url 'authentication:password_recovery' %}" class="forgot-password">¿Olvidaste tu contraseña?</a>
+        </div>
+    </div>
+    
+    <!-- Tarjeta flotante con usuarios de login -->
+    <div class="users-card">
+        <div class="users-card-header">
+            <h3>📋 Usuarios de Login</h3>
+        </div>
+        <div class="users-card-content">
+            <div class="user-item">
+                <div class="user-role">Administrador</div>
+                <div class="user-email">admin@hospital.com</div>
+                <div class="user-password">AdminPass123!</div>
+            </div>
+            <div class="user-item">
+                <div class="user-role">Médico Radiólogo</div>
+                <div class="user-email">medico@hospital.com</div>
+                <div class="user-password">MedicoPass123!</div>
+            </div>
+            <div class="user-item">
+                <div class="user-role">Técnico de Salud</div>
+                <div class="user-email">tecnico@hospital.com</div>
+                <div class="user-password">TecnicoPass123!</div>
+            </div>
+        </div>
+        <div class="users-card-footer">
+            <p class="users-card-note">💡 Datos de prueba para desarrollo</p>
         </div>
     </div>
 </div>

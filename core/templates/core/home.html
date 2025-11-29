@@ -3,41 +3,13 @@
 
 {% block title %}{{ title }} - Inicio{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'core/css/carousel.css' %}">
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
-<main class="hero-carousel">
-<!-- Hero Section (overlay) -->
- 
-<section class="hero">
+<main class="hero">
+    <!-- Hero Section (overlay) -->
    
-    </div>
-</section>
 
-<!-- Carousel Section (full width) -->
-<section class="carousel-section">
-    <div class="carousel" data-interval="10000">
-            <div class="carousel-track">
-                <div class="carousel-slide"><img src="{% static 'img/1.png' %}" alt="slide 1"></div>
-                <div class="carousel-slide"><img src="{% static 'img/2.png' %}" alt="slide 2"></div>
-                <div class="carousel-slide"><img src="{% static 'img/3.png' %}" alt="slide 3"></div>
-            </div>
-            <div class="carousel-nav">
-                <button class="carousel-button carousel-prev">‹</button>
-                <button class="carousel-button carousel-next">›</button>
-            </div>
-            <div class="carousel-indicators">
-                <button class="active" aria-label="slide 1"></button>
-                <button aria-label="slide 2"></button>
-                <button aria-label="slide 3"></button>
-            </div>
-        </div>
-    </section>
-
-     
-    </main>
     <div class="container">
         <div class="hero-content">
             <h1 class="hero-title">Diagnóstico Médico Asistido por Inteligencia Artificial</h1>
@@ -51,13 +23,10 @@
             </div>
         </div>
         <div class="hero-image">
-            <div class="hero-illustration">
-                
-            </div>
+            <div class="hero-illustration"></div>
         </div>
     </div>
-    {% endblock %}
-    
-{% block extra_js %}
-<script src="{% static 'core/js/carousel.js' %}"></script>
+</main>
 {% endblock %}
+
+{% block extra_js %}{% endblock %}

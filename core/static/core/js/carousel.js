@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
     index = (i + slides.length) % slides.length;
     track.style.transform = `translateX(-${index * 100}%)`;
     indicators.forEach((btn, idx) => btn.classList.toggle('active', idx === index));
+    // mark the active slide so CSS effects (zoom/less blur) can apply
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === index));
   };
   nextButton && nextButton.addEventListener('click', () => moveTo(index + 1));
   prevButton && prevButton.addEventListener('click', () => moveTo(index - 1));
