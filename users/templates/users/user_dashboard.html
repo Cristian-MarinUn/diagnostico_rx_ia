@@ -30,12 +30,12 @@
                 </div>
                 <div class="dashboard-actions">
                     {% if user.rol == 'MEDICO_RADIOLOGO' %}
-                        <a href="#" class="btn btn-primary">
+                        <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary">
                             <span>📊</span>
                             <span>Nuevo Diagnóstico</span>
                         </a>
                     {% elif user.rol == 'TECNICO_SALUD' %}
-                        <a href="#" class="btn btn-primary">
+                        <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary">
                             <span>📤</span>
                             <span>Cargar Imágenes</span>
                         </a>
@@ -204,6 +204,16 @@
                         Compara imágenes con casos anteriores del paciente
                     </p>
                 </a>
+
+                <a href="{% url 'users:patient_create' %}" class="action-card">
+                    <div class="action-icon">
+                        <span>➕</span>
+                    </div>
+                    <h3 class="action-title">Agregar Paciente</h3>
+                    <p class="action-description">
+                        Registra un nuevo paciente en el sistema
+                    </p>
+                </a>
                 {% elif user.rol == 'TECNICO_SALUD' %}
                 <a href="#" class="action-card">
                     <div class="action-icon">
@@ -242,6 +252,16 @@
                     <h3 class="action-title">Estadísticas</h3>
                     <p class="action-description">
                         Visualiza métricas de tus cargas y eficiencia
+                    </p>
+                </a>
+
+                <a href="{% url 'users:patient_create' %}" class="action-card">
+                    <div class="action-icon">
+                        <span>➕</span>
+                    </div>
+                    <h3 class="action-title">Agregar Paciente</h3>
+                    <p class="action-description">
+                        Registra un nuevo paciente en el sistema
                     </p>
                 </a>
                 {% endif %}

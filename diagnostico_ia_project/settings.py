@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'core',
     'authentication',
     'users',
+    'medical_images',
 
 
 
@@ -146,7 +147,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static', BASE_DIR / 'core']
 
 # Media files (user uploads)
 MEDIA_URL = '/media/'

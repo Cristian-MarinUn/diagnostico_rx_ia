@@ -1,0 +1,234 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Crear Nuevo Paciente - Sistema de Diagnóstico IA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/patient_create.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="patient-create-container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'users:user_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Crear Paciente</li>
+        </ol>
+    </nav>
+
+    <div class="create-wrapper">
+        <!-- Left Panel: Form -->
+        <div class="form-panel">
+            <div class="form-header">
+                <div class="form-header-icon">👤</div>
+                <div class="form-header-content">
+                    <h1 class="form-title">Registrar Nuevo Paciente</h1>
+                    <p class="form-subtitle">Completa los datos del paciente para crear su perfil en el sistema</p>
+                </div>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alert-container"></div>
+
+            <!-- Form -->
+            <form id="patient-form" method="post" class="patient-form" novalidate>
+                {% csrf_token %}
+
+                <!-- Personal Information Section -->
+                <fieldset class="form-section">
+                    <legend class="section-legend">
+                        <i class="fas fa-user me-2"></i>
+                        Información Personal
+                    </legend>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.identification.id_for_label }}" class="form-label">
+                                {{ form.identification.label }}
+                            </label>
+                            {{ form.identification }}
+                            <div class="invalid-feedback"></div>
+                            {% if form.identification.help_text %}
+                            <small class="form-text">{{ form.identification.help_text|safe }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                {{ form.first_name.label }}
+                            </label>
+                            {{ form.first_name }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                {{ form.last_name.label }}
+                            </label>
+                            {{ form.last_name }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                {{ form.date_of_birth.label }}
+                            </label>
+                            {{ form.date_of_birth }}
+                            <div class="invalid-feedback"></div>
+                            <small class="form-text" id="age-display"></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                {{ form.gender.label }}
+                            </label>
+                            {{ form.gender }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Contact Information Section -->
+                <fieldset class="form-section">
+                    <legend class="section-legend">
+                        <i class="fas fa-envelope me-2"></i>
+                        Información de Contacto
+                    </legend>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                {{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.email_confirmation.id_for_label }}" class="form-label">
+                                {{ form.email_confirmation.label }}
+                            </label>
+                            {{ form.email_confirmation }}
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                {{ form.phone.label }}
+                            </label>
+                            {{ form.phone }}
+                            <div class="invalid-feedback"></div>
+                            {% if form.phone.help_text %}
+                            <small class="form-text">{{ form.phone.help_text|safe }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                        <i class="fas fa-save me-2"></i>
+                        Registrar Paciente
+                    </button>
+
+                    <button type="reset" class="btn btn-outline-secondary btn-lg" id="reset-btn">
+                        <i class="fas fa-redo me-2"></i>
+                        Limpiar Formulario
+                    </button>
+
+                    <a href="{% url 'users:user_dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-times me-2"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Panel: Info Card -->
+        <div class="info-panel">
+            <div class="info-card">
+                <h3 class="info-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Importante
+                </h3>
+
+                <div class="info-content">
+                    <h4 class="info-subtitle">Campos Obligatorios (*)</h4>
+                    <ul class="info-list">
+                        <li>Número de identificación único</li>
+                        <li>Nombres y apellidos</li>
+                        <li>Fecha de nacimiento</li>
+                        <li>Género</li>
+                    </ul>
+
+                    <h4 class="info-subtitle">Campos Opcionales</h4>
+                    <ul class="info-list">
+                        <li>Correo electrónico</li>
+                        <li>Teléfono</li>
+                    </ul>
+
+                    <h4 class="info-subtitle">Validaciones</h4>
+                    <ul class="info-list">
+                        <li>La identificación debe ser única</li>
+                        <li>La fecha de nacimiento no puede ser futura</li>
+                        <li>Si ingresa email, debe confirmar</li>
+                        <li>El teléfono debe tener formato válido</li>
+                    </ul>
+
+                    <div class="info-tip">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <span>Una vez registrado, el paciente podrá recibir diagnósticos y cargas de imágenes.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="progress-card">
+                <h3 class="progress-title">Progreso del Formulario</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="form-progress">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="progress-text"><span id="progress-percent">0</span>%</span>
+                </div>
+                <ul class="progress-checklist" id="progress-checklist">
+                    <li class="checklist-item" data-field="identification">
+                        <i class="fas fa-check me-2"></i>
+                        <span>Identificación</span>
+                    </li>
+                    <li class="checklist-item" data-field="first_name">
+                        <i class="fas fa-check me-2"></i>
+                        <span>Nombres</span>
+                    </li>
+                    <li class="checklist-item" data-field="last_name">
+                        <i class="fas fa-check me-2"></i>
+                        <span>Apellidos</span>
+                    </li>
+                    <li class="checklist-item" data-field="date_of_birth">
+                        <i class="fas fa-check me-2"></i>
+                        <span>Fecha de Nacimiento</span>
+                    </li>
+                    <li class="checklist-item" data-field="gender">
+                        <i class="fas fa-check me-2"></i>
+                        <span>Género</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/patient_create.js' %}"></script>
+{% endblock %}

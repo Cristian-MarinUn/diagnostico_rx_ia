@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('auth/', include('authentication.urls')),
     path('users/', include('users.urls')),
+    path('medical-images/', include('medical_images.urls')),
 ]
 
 if settings.DEBUG:

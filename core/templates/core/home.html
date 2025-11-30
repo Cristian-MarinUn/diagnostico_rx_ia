@@ -1,15 +1,20 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
 {% block title %}{{ title }} - Inicio{% endblock %}
 
+{% block extra_css %}{% endblock %}
+
 {% block content %}
-<!-- Hero Section -->
-<section class="hero">
+<main class="hero">
+    <!-- Hero Section (overlay) -->
+   
+
     <div class="container">
         <div class="hero-content">
             <h1 class="hero-title">Diagnóstico Médico Asistido por Inteligencia Artificial</h1>
             <p class="hero-subtitle">
-                Sistema avanzado para análisis de imágenes médicas con IA, 
+                Sistema avanzado para análisis de imágenes médicas con IA,
                 brindando diagnósticos preliminares precisos y confiables.
             </p>
             <div class="hero-actions">
@@ -18,15 +23,10 @@
             </div>
         </div>
         <div class="hero-image">
-            <div class="hero-illustration">
-                <div class="illustration-element">
-                    <span class="icon-large">🔬</span>
-                </div>
-            </div>
+            <div class="hero-illustration"></div>
         </div>
     </div>
-</section>
-
-<!-- Features Section -->
-
+</main>
 {% endblock %}
+
+{% block extra_js %}{% endblock %}

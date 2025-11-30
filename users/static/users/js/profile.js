@@ -409,3 +409,473 @@
     };
     
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ================================
+// ARCHIVO: apps/users/static/users/js/profile_view.js
+// CU-006 y CU-007: JavaScript para Perfil y 2FA
+// ================================
+
+(function() {
+    'use strict';
+
+    // ========== Variables Globales ==========
+    const API_PROFILE_URL = '/api/users/profile/';
+    const API_2FA_STATUS_URL = '/api/users/2fa/status/';
+    const API_2FA_ENABLE_URL = '/api/users/2fa/enable/';
+    const API_2FA_DISABLE_URL = '/api/users/2fa/disable/';
+    const API_SECURITY_URL = '/api/users/profile/security/';
+
+    // ========== Inicialización ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        load2FAStatus();
+        loadSecurityInfo();
+    });
+
+    // ========== Cargar Estado 2FA ==========
+    async function load2FAStatus() {
+        try {
+            const response = await fetch(API_2FA_STATUS_URL, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al cargar estado 2FA');
+
+            const data = await response.json();
+            render2FAStatus(data.data);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('2fa-status-container').innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Error al cargar la información de 2FA
+                </div>
+            `;
+        }
+    }
+
+    // ========== Renderizar Estado 2FA ==========
+    function render2FAStatus(status) {
+        const container = document.getElementById('2fa-status-container');
+        
+        if (status.is_enabled) {
+            container.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-check-circle"></i> Habilitado
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Método: ${get2FAMethodName(status.method)}
+                        </p>
+                        <p class="text-muted small mb-0">
+                            Configurado: ${formatDate(status.created_at)}
+                        </p>
+                    </div>
+                    <button 
+                        class="btn btn-sm btn-outline-danger" 
+                        onclick="disable2FA()"
+                    >
+                        <i class="fas fa-times-circle me-1"></i>
+                        Deshabilitar
+                    </button>
+                </div>
+                <div class="alert alert-success mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Tu cuenta está protegida con 2FA
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="text-center mb-3">
+                    <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-3">
+                        La autenticación de dos factores agrega una capa adicional de seguridad a tu cuenta.
+                    </p>
+                    <button 
+                        class="btn btn-success btn-sm" 
+                        onclick="showEnable2FAModal()"
+                    >
+                        <i class="fas fa-plus-circle me-1"></i>
+                        Habilitar 2FA
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // ========== Cargar Información de Seguridad ==========
+    async function loadSecurityInfo() {
+        try {
+            const response = await fetch(API_SECURITY_URL, {
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error('Error al cargar información de seguridad');
+
+            const data = await response.json();
+            renderSecurityInfo(data.data);
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('security-info-container').innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    Error al cargar información de seguridad
+                </div>
+            `;
+        }
+    }
+
+    // ========== Renderizar Información de Seguridad ==========
+    function renderSecurityInfo(info) {
+        const container = document.getElementById('security-info-container');
+        
+        container.innerHTML = `
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="security-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Autenticación de Dos Factores</h6>
+                                <p class="text-muted small mb-0">
+                                    ${info.two_factor_enabled ? 'Habilitada' : 'Deshabilitada'}
+                                </p>
+                            </div>
+                            <div>
+                                ${info.two_factor_enabled ? 
+                                    '<i class="fas fa-check-circle fa-2x text-success"></i>' :
+                                    '<i class="fas fa-times-circle fa-2x text-danger"></i>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="security-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Sesiones Activas</h6>
+                                <p class="text-muted small mb-0">
+                                    ${info.active_sessions} sesión(es) activa(s)
+                                </p>
+                            </div>
+                            <div>
+                                <i class="fas fa-desktop fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${info.last_login_ip ? `
+                <div class="col-md-6 mb-3">
+                    <div class="security-item">
+                        <h6 class="mb-1">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            Último Acceso desde IP
+                        </h6>
+                        <p class="mb-0 font-monospace">${info.last_login_ip}</p>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div class="col-12">
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Recomendaciones de seguridad:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Cambia tu contraseña regularmente</li>
+                            <li>Habilita la autenticación de dos factores</li>
+                            <li>No compartas tu contraseña con nadie</li>
+                            <li>Cierra sesión en dispositivos públicos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ========== Mostrar Modal para Habilitar 2FA ==========
+    window.showEnable2FAModal = async function() {
+        const modal = new bootstrap.Modal(document.getElementById('setup2FAModal'));
+        const content = document.getElementById('setup2FAContent');
+        
+        content.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Configurando 2FA...</p>
+            </div>
+        `;
+        
+        modal.show();
+
+        // Solicitar contraseña
+        content.innerHTML = `
+            <div class="mb-4">
+                <p>Para habilitar la autenticación de dos factores, primero confirma tu contraseña actual:</p>
+                <form id="confirm-password-form">
+                    <div class="mb-3">
+                        <label for="current-password" class="form-label">Contraseña Actual</label>
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="current-password" 
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-2"></i>
+                        Continuar
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+        `;
+
+        document.getElementById('confirm-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await enable2FA();
+        });
+    };
+
+    // ========== Habilitar 2FA ==========
+    async function enable2FA() {
+        const password = document.getElementById('current-password').value;
+        const content = document.getElementById('setup2FAContent');
+
+        try {
+            content.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Habilitando 2FA...</p>
+                </div>
+            `;
+
+            const response = await fetch(API_2FA_ENABLE_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al habilitar 2FA');
+            }
+
+            // Mostrar QR y códigos de respaldo
+            content.innerHTML = `
+                <div class="text-center mb-4">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        ${data.message}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h6 class="mb-3">1. Escanea el código QR</h6>
+                        <p class="text-muted small">
+                            Usa Google Authenticator, Authy o cualquier aplicación compatible con TOTP
+                        </p>
+                        <div class="text-center">
+                            <img 
+                                src="${data.data.qr_code}" 
+                                alt="QR Code" 
+                                class="img-fluid border rounded p-2"
+                                style="max-width: 250px;"
+                            >
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-muted small mb-1">O ingresa manualmente:</p>
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    class="form-control font-monospace" 
+                                    value="${data.data.secret}" 
+                                    readonly
+                                    id="secret-key"
+                                >
+                                <button 
+                                    class="btn btn-outline-secondary" 
+                                    onclick="copyToClipboard('secret-key')"
+                                >
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <h6 class="mb-3">2. Guarda los códigos de respaldo</h6>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Importante:</strong> Guarda estos códigos en un lugar seguro. 
+                            Los necesitarás si pierdes acceso a tu autenticador.
+                        </div>
+                        <div class="backup-codes-container p-3 bg-light rounded">
+                            ${data.data.backup_codes.map(code => `
+                                <code class="d-block mb-2">${code}</code>
+                            `).join('')}
+                        </div>
+                        <button 
+                            class="btn btn-sm btn-outline-primary mt-2 w-100" 
+                            onclick="downloadBackupCodes(${JSON.stringify(data.data.backup_codes)})"
+                        >
+                            <i class="fas fa-download me-2"></i>
+                            Descargar Códigos
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button 
+                        class="btn btn-success" 
+                        onclick="complete2FASetup()"
+                    >
+                        <i class="fas fa-check me-2"></i>
+                        Completar Configuración
+                    </button>
+                </div>
+            `;
+
+        } catch (error) {
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    ${error.message}
+                </div>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            `;
+        }
+    }
+
+    // ========== Completar Setup 2FA ==========
+    window.complete2FASetup = function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('setup2FAModal'));
+        modal.hide();
+        
+        // Recargar estado
+        load2FAStatus();
+        
+        // Mostrar notificación
+        showNotification('2FA habilitado correctamente', 'success');
+    };
+
+    // ========== Deshabilitar 2FA ==========
+    window.disable2FA = async function() {
+        if (!confirm('¿Estás seguro de que deseas deshabilitar 2FA? Esto reducirá la seguridad de tu cuenta.')) {
+            return;
+        }
+
+        const password = prompt('Ingresa tu contraseña para confirmar:');
+        if (!password) return;
+
+        try {
+            const response = await fetch(API_2FA_DISABLE_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`,
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al deshabilitar 2FA');
+            }
+
+            showNotification(data.message, 'success');
+            load2FAStatus();
+
+        } catch (error) {
+            showNotification(error.message, 'danger');
+        }
+    };
+
+    // ========== Utilidades ==========
+
+    function get2FAMethodName(method) {
+        const methods = {
+            'totp': 'Aplicación Autenticadora',
+            'email': 'Código por Email',
+            'sms': 'Código por SMS'
+        };
+        return methods[method] || method;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    window.copyToClipboard = function(elementId) {
+        const element = document.getElementById(elementId);
+        element.select();
+        document.execCommand('copy');
+        showNotification('Copiado al portapapeles', 'success');
+    };
+
+    window.downloadBackupCodes = function(codes) {
+        const content = 'Códigos de Respaldo 2FA\n' +
+                       'Sistema de Diagnóstico IA\n\n' +
+                       codes.join('\n');
+        
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '2fa-backup-codes.txt';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    function showNotification(message, type = 'info') {
+        // Implementar según tu sistema de notificaciones
+        alert(message);
+    }
+
+    function getAuthToken() {
+        return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    }
+
+})();

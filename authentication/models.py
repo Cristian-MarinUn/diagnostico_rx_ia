@@ -46,6 +46,7 @@ class User(AbstractUser):
     fecha_registro = models.DateTimeField('Fecha de registro', auto_now_add=True)
     ultimo_acceso = models.DateTimeField('Último acceso', null=True, blank=True)
     estado = models.BooleanField('Activo', default=True)
+    must_change_password = models.BooleanField('Forzar cambio de contraseña', default=False)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']

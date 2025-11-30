@@ -1,0 +1,403 @@
+<!-- ================================ -->
+<!-- ARCHIVO: apps/users/templates/users/profile_edit.html -->
+<!-- CU-008: Actualizar Información de Perfil -->
+<!-- ================================ -->
+
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - {{ user.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/profile.css' %}?v=2">
+<style>
+    /* Estilos para la página de edición de perfil */
+    .edit-profile-page {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+        min-height: calc(100vh - var(--navbar-height));
+        padding: 2rem 1rem;
+    }
+
+    .edit-profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .edit-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+        color: #94a3b8;
+    }
+
+    .edit-breadcrumb a {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .edit-breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .edit-card {
+        background: rgba(30, 41, 59, 0.5);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 2rem;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .edit-header {
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .edit-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin: 0;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        opacity: 0.9;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+    }
+
+    .required {
+        color: #ef4444;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(51, 65, 85, 0.6);
+        border-radius: 0.75rem;
+        font-size: 1rem;
+        color: #f1f5f9;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: rgba(15, 23, 42, 0.8);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+
+    .form-control:disabled {
+        background: rgba(15, 23, 42, 0.3);
+        color: #64748b;
+        cursor: not-allowed;
+    }
+
+    .form-control::placeholder {
+        color: #64748b;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin-top: 0.5rem;
+        display: block;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .btn {
+        padding: 0.875rem 1.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        font-size: 1rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: rgba(51, 65, 85, 0.6);
+        color: #cbd5e1;
+        border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(51, 65, 85, 0.8);
+        color: #f1f5f9;
+    }
+
+    .info-box {
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        margin-top: 2rem;
+    }
+
+    .info-box-title {
+        font-weight: 600;
+        color: #60a5fa;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-box-content {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .info-box-content ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .info-box-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+    }
+
+    .alert-error {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-profile-page">
+    <div class="edit-profile-container">
+        <!-- Breadcrumb -->
+        <div class="edit-breadcrumb">
+            <a href="{% url 'users:profile' %}">Mi Perfil</a>
+            <span>›</span>
+            <span>Editar Perfil</span>
+        </div>
+
+        <!-- Formulario -->
+        <div class="edit-card">
+            <div class="edit-header">
+                <h1 class="edit-title">✏️ Editar Mi Perfil</h1>
+            </div>
+
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" id="editProfileForm">
+                {% csrf_token %}
+
+                <!-- Información Personal -->
+                <div class="form-section">
+                    <h3 class="form-section-title">📋 Información Personal</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            Nombre <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="first_name" 
+                            class="form-control"
+                            value="{{ user.first_name }}"
+                            placeholder="Tu nombre"
+                            required
+                        >
+                        <span class="form-text">Tu nombre completo</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Apellido <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="last_name" 
+                            class="form-control"
+                            value="{{ user.last_name }}"
+                            placeholder="Tu apellido"
+                            required
+                        >
+                        <span class="form-text">Tu apellido completo</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Teléfono de Contacto
+                        </label>
+                        <input 
+                            type="tel" 
+                            name="telefono" 
+                            class="form-control"
+                            value="{{ user_data.telefono }}"
+                            placeholder="+57300123456"
+                        >
+                        <span class="form-text">Formato: +57300123456 (opcional)</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Correo Electrónico
+                        </label>
+                        <input 
+                            type="email" 
+                            class="form-control"
+                            value="{{ user.email }}"
+                            disabled
+                        >
+                        <span class="form-text">🔒 Este campo no puede ser modificado</span>
+                    </div>
+                </div>
+
+                <!-- Información del Sistema (Solo Lectura) -->
+                <div class="form-section">
+                    <h3 class="form-section-title">🔐 Información del Sistema</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rol</label>
+                        <input 
+                            type="text" 
+                            class="form-control"
+                            value="{{ user_data.rol }}"
+                            disabled
+                        >
+                        <span class="form-text">Asignado por el administrador</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Fecha de Registro</label>
+                        <input 
+                            type="text" 
+                            class="form-control"
+                            value="{{ user_data.fecha_registro|date:'d/m/Y H:i' }}"
+                            disabled
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Último Acceso</label>
+                        <input 
+                            type="text" 
+                            class="form-control"
+                            value="{{ user_data.ultimo_acceso|date:'d/m/Y H:i' }}"
+                            disabled
+                        >
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span>💾</span>
+                        <span>Guardar Cambios</span>
+                    </button>
+                    <a href="{% url 'users:profile' %}" class="btn btn-secondary">
+                        <span>❌</span>
+                        <span>Cancelar</span>
+                    </a>
+                </div>
+            </form>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <div class="info-box-title">ℹ️ Información Importante</div>
+                <div class="info-box-content">
+                    <ul>
+                        <li>Los campos marcados con <span style="color: #ef4444;">*</span> son obligatorios</li>
+                        <li>Tu correo electrónico, rol y estado solo pueden ser modificados por un administrador</li>
+                        <li>Los cambios se guardarán automáticamente en el sistema</li>
+                        <li>Todos tus cambios quedan registrados en el sistema para auditoría</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editProfileForm');
+        
+        form.addEventListener('submit', function(e) {
+            const firstName = document.querySelector('input[name="first_name"]').value.trim();
+            const lastName = document.querySelector('input[name="last_name"]').value.trim();
+            
+            if (!firstName || !lastName) {
+                e.preventDefault();
+                alert('El nombre y apellido son requeridos');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
