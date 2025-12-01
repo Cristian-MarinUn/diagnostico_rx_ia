@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'diagnostico/css/diagnosis_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="diagnosis-list-container">
+    <!-- Header -->
+    <div class="list-header">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h1 class="list-title">📋 Diagnósticos</h1>
+            <a href="{% url 'users:user_dashboard' %}" style="color: var(--primary-color); text-decoration: none;">← Volver al dashboard</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="filters">
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>⏳ Pendiente</option>
+            <option value="PROCESSING" {% if request.GET.status == 'PROCESSING' %}selected{% endif %}>⚙️ Procesando</option>
+            <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>✅ Completado</option>
+            <option value="VALIDATED" {% if request.GET.status == 'VALIDATED' %}selected{% endif %}>✓ Validado</option>
+            <option value="DISCARDED" {% if request.GET.status == 'DISCARDED' %}selected{% endif %}>🗑️ Descartado</option>
+            <option value="FAILED" {% if request.GET.status == 'FAILED' %}selected{% endif %}>❌ Error</option>
+        </select>
+    </form>
+
+    <!-- Table -->
+    {% if diagnoses %}
+    <div class="diagnosis-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Paciente</th>
+                    <th>Estado</th>
+                    <th>Confianza</th>
+                    <th>Solicitado por</th>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for diagnosis in diagnoses %}
+                <tr>
+                    <td>#{{ diagnosis.id }}</td>
+                    <td>
+                        <a href="#" class="patient-name">
+                            {{ diagnosis.patient.get_full_name }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ diagnosis.status|lower }}">
+                            {% if diagnosis.status == 'PENDING' %}⏳
+                            {% elif diagnosis.status == 'PROCESSING' %}⚙️
+                            {% elif diagnosis.status == 'COMPLETED' %}✅
+                            {% elif diagnosis.status == 'VALIDATED' %}✓
+                            {% elif diagnosis.status == 'DISCARDED' %}🗑️
+                            {% elif diagnosis.status == 'FAILED' %}❌
+                            {% endif %}
+                            {{ diagnosis.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if diagnosis.confidence_level %}
+                            {{ diagnosis.confidence_level|floatformat:1 }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ diagnosis.requested_by.get_full_name }}</td>
+                    <td>{{ diagnosis.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'diagnostico:diagnosis_detail' diagnosis.id %}" class="action-link">
+                            Ver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="diagnosis-table">
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <p>No hay diagnósticos disponibles</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'diagnostico/js/diagnosis_list.js' %}"></script>
+{% endblock %}

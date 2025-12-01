@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'diagnostico/css/request_diagnosis.css' %}">
+<link rel="stylesheet" href="{% static 'diagnostico/css/users_card.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="request-diagnosis-container">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <a href="{% url 'users:user_dashboard' %}" style="color: var(--primary-color); text-decoration: none;">← Volver al dashboard</a>
+        </div>
+        <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">
+            🤖 Solicitar Diagnóstico
+        </h1>
+    </div>
+
+    <!-- Alerts -->
+    {% if messages %}
+    <div class="alerts-container">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}error{% else %}success{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        
+        <!-- Patient Information -->
+        <div class="form-section">
+            <h2 class="form-section-title">👤 Información del Paciente</h2>
+            <div class="patient-info">
+                <div class="info-item">
+                    <span class="info-label">Identificación</span>
+                    <span class="info-value">{{ patient.identification }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nombre</span>
+                    <span class="info-value">{{ patient.get_full_name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Edad</span>
+                    <span class="info-value">{{ patient.get_age }} años</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ patient.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Teléfono</span>
+                    <span class="info-value">{{ patient.phone }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Images -->
+        <div class="form-section">
+            <h2 class="form-section-title">📸 Seleccionar Imágenes</h2>
+            
+            {% if images %}
+            <div class="images-selector">
+                {% for image in images %}
+                <label class="image-checkbox">
+                    <input type="checkbox" name="images" value="{{ image.id }}">
+                    <div class="image-checkbox-content">
+                        <div class="image-study-type">
+                            {% if image.study_type == 'RX' %}🩻 Radiografía
+                            {% elif image.study_type == 'TAC' %}🔬 Tomografía (TAC)
+                            {% elif image.study_type == 'RMN' %}🧲 Resonancia Magnética
+                            {% elif image.study_type == 'ECO' %}📡 Ecografía
+                            {% elif image.study_type == 'MAM' %}🎗️ Mamografía
+                            {% else %}📋 {{ image.get_study_type_display }}
+                            {% endif %}
+                        </div>
+                        <div class="image-meta">
+                            📅 {{ image.study_date|date:"d/m/Y" }}
+                            {% if image.study_description %} • {{ image.study_description }}{% endif %}
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary); background: var(--surface); border-radius: 0.75rem;">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📭</div>
+                <p>No hay imágenes disponibles para este paciente.</p>
+                <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">
+                    📤 Cargar Imágenes
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a href="{% url 'users:user_dashboard' %}" class="btn btn-outline">
+                ✕ Cancelar
+            </a>
+            {% if images %}
+            <button type="submit" class="btn btn-primary">
+                🚀 Solicitar Diagnóstico
+            </button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

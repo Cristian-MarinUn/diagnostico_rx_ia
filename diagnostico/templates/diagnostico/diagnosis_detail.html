@@ -1,0 +1,291 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'diagnostico/css/diagnosis_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="diagnosis-detail-container" data-diagnosis-id="{{ diagnosis.id }}">
+    <!-- Status Header -->
+    <div class="status-header">
+        <div class="status-row">
+            <div class="status-info">
+                <div class="diagnosis-id">ID: {{ diagnosis.id }}</div>
+                <h1 class="diagnosis-title">
+                    Diagnóstico para 
+                    <a href="#" class="patient-link">
+                        {{ diagnosis.patient.get_full_name }}
+                    </a>
+                </h1>
+                <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <span class="status-badge-large status-{{ diagnosis.status|lower }}">
+                        {% if diagnosis.status == 'PENDING' %}⏳
+                        {% elif diagnosis.status == 'PROCESSING' %}⚙️
+                        {% elif diagnosis.status == 'COMPLETED' %}✅
+                        {% elif diagnosis.status == 'FAILED' %}❌
+                        {% elif diagnosis.status == 'VALIDATED' %}✓
+                        {% elif diagnosis.status == 'DISCARDED' %}🗑️
+                        {% endif %}
+                        {{ diagnosis.get_status_display }}
+                    </span>
+                    
+                    {% if diagnosis.created_at %}
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;">
+                        📅 {{ diagnosis.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Bar for Processing Status -->
+        {% if diagnosis.status == 'PROCESSING' or diagnosis.status == 'PENDING' %}
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {% if diagnosis.status == 'PENDING' %}25%{% else %}75%{% endif %}"></div>
+            </div>
+            <div class="progress-text">
+                {% if diagnosis.status == 'PENDING' %}
+                    ⏳ En cola para procesamiento...
+                {% else %}
+                    ⚙️ Procesando con motor de IA...
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+        <!-- Left Column: Results -->
+        <div>
+            <!-- Diagnosis Result -->
+            {% if diagnosis.status == 'COMPLETED' or diagnosis.status == 'VALIDATED' %}
+            <div class="result-section">
+                <div class="section-header">
+                    <h2 class="section-title">🤖 Resultado del Diagnóstico</h2>
+                </div>
+                
+                <!-- Confidence Meter -->
+                {% if diagnosis.confidence_level %}
+                <div class="confidence-meter">
+                    <div class="confidence-circle">
+                        <svg width="150" height="150" viewBox="0 0 150 150">
+                            <circle cx="75" cy="75" r="65" fill="none" stroke="var(--surface-light)" stroke-width="10"/>
+                            <circle cx="75" cy="75" r="65" fill="none" stroke="var(--primary-color)" stroke-width="10"
+                                    stroke-dasharray="{{ diagnosis.confidence_level|floatformat:0|add:'%' }} 408.4"
+                                    stroke-linecap="round"
+                                    transform="rotate(-90 75 75)"
+                                    style="transition: stroke-dasharray 1s ease;"/>
+                        </svg>
+                        <div class="confidence-value">{{ diagnosis.confidence_level|floatformat:1 }}%</div>
+                    </div>
+                    <div class="confidence-label">Nivel de Confianza</div>
+                </div>
+                {% endif %}
+                
+                <!-- Diagnosis Text -->
+                <div class="diagnosis-result">
+                    <p class="diagnosis-text">{{ diagnosis.diagnosis_result }}</p>
+                </div>
+                
+                <!-- AI Observations -->
+                {% if diagnosis.ai_observations %}
+                <div class="section-header" style="margin-top: 2rem;">
+                    <h3 class="section-title">💡 Observaciones de la IA</h3>
+                </div>
+                <ul class="observations-list">
+                    {% for observation in diagnosis.ai_observations %}
+                    <li class="observation-item">
+                        <span class="observation-icon">•</span>
+                        <span class="observation-text">{{ observation }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            
+            {% elif diagnosis.status == 'FAILED' %}
+            <!-- Error State -->
+            <div class="result-section">
+                <div class="section-header">
+                    <h2 class="section-title">❌ Error en el Procesamiento</h2>
+                </div>
+                <div style="text-align: center; padding: 3rem 2rem; color: var(--text-secondary);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">⚠️</div>
+                    <h3>No se pudo generar el diagnóstico</h3>
+                    {% if diagnosis.error_message %}
+                    <p style="margin-top: 1rem;">{{ diagnosis.error_message }}</p>
+                    {% endif %}
+                    <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="location.reload()">
+                        🔄 Reintentar
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Doctor Comments -->
+            {% if diagnosis.status == 'COMPLETED' or diagnosis.status == 'VALIDATED' %}
+            <div class="comments-section">
+                <div class="section-header">
+                    <h2 class="section-title">💬 Comentarios del Médico</h2>
+                </div>
+                
+                {% if diagnosis.doctor_comments %}
+                <div class="existing-comments">
+                    <div class="comment-header">
+                        <span class="comment-author">
+                            👨‍⚕️ {{ diagnosis.validated_by.get_full_name|default:diagnosis.requested_by.get_full_name }}
+                        </span>
+                        {% if diagnosis.validated_at %}
+                        <span class="comment-date">{{ diagnosis.validated_at|date:"d/m/Y H:i" }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="comment-text">{{ diagnosis.doctor_comments }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right Column: Metadata & Actions -->
+        <div>
+            <!-- Metadata -->
+            <div class="metadata-section">
+                <div class="section-header">
+                    <h3 class="section-title">📋 Información</h3>
+                </div>
+                
+                <div class="metadata-grid">
+                    <div class="metadata-item">
+                        <span class="metadata-label">Solicitado por</span>
+                        <span class="metadata-value">
+                            👨‍⚕️ {{ diagnosis.requested_by.get_full_name }}
+                        </span>
+                    </div>
+                    
+                    <div class="metadata-item">
+                        <span class="metadata-label">Fecha Creación</span>
+                        <span class="metadata-value">{{ diagnosis.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    
+                    {% if diagnosis.completed_at %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Fecha Completado</span>
+                        <span class="metadata-value">{{ diagnosis.completed_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if diagnosis.processing_time %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Tiempo Procesamiento</span>
+                        <span class="metadata-value">{{ diagnosis.processing_time|floatformat:2 }} segundos</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if diagnosis.model_version %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Versión del Modelo</span>
+                        <span class="metadata-value">{{ diagnosis.model_version }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="metadata-item">
+                        <span class="metadata-label">Imágenes Analizadas</span>
+                        <span class="metadata-value">{{ images.count }} imagen{% if images.count != 1 %}es{% endif %}</span>
+                    </div>
+                </div>
+                
+                <!-- Images -->
+                <div class="images-grid">
+                    {% for image in images %}
+                    <div class="image-card">
+                        <div class="image-icon">
+                            {% if image.study_type == 'RX' %}🩻
+                            {% elif image.study_type == 'TAC' %}🔬
+                            {% elif image.study_type == 'RMN' %}🧲
+                            {% elif image.study_type == 'ECO' %}📡
+                            {% elif image.study_type == 'MAM' %}🎗️
+                            {% else %}📋
+                            {% endif %}
+                        </div>
+                        <div class="image-type">{{ image.get_study_type_display|default:image.study_type }}</div>
+                        <div class="image-date">{{ image.study_date|date:"d/m/Y" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            {% if diagnosis.status == 'COMPLETED' %}
+            <div class="actions-section">
+                <div class="section-header">
+                    <h3 class="section-title">⚡ Acciones</h3>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" style="width: 100%;" onclick="validateDiagnosis({{ diagnosis.id }})">
+                        ✓ Validar Diagnóstico
+                    </button>
+                    <button class="btn btn-outline" style="width: 100%;">
+                        📥 Exportar PDF
+                    </button>
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="discardDiagnosis({{ diagnosis.id }})">
+                        🗑️ Descartar
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Audit Logs -->
+    {% if logs %}
+    <div class="logs-section">
+        <div class="section-header">
+            <h2 class="section-title">📜 Historial de Cambios</h2>
+        </div>
+        
+        <div class="logs-timeline">
+            {% for log in logs %}
+            <div class="log-item">
+                <div class="log-icon">
+                    {% if log.action == 'CREATED' %}➕
+                    {% elif log.action == 'PROCESSING' %}⚙️
+                    {% elif log.action == 'COMPLETED' %}✅
+                    {% elif log.action == 'FAILED' %}❌
+                    {% elif log.action == 'VALIDATED' %}✓
+                    {% elif log.action == 'DISCARDED' %}🗑️
+                    {% elif log.action == 'COMMENTED' %}💬
+                    {% else %}📝
+                    {% endif %}
+                </div>
+                <div class="log-content">
+                    <div class="log-action">{{ log.get_action_display }}</div>
+                    {% if log.performed_by %}
+                    <div class="log-details">
+                        Por: {{ log.performed_by.get_full_name }}
+                    </div>
+                    {% endif %}
+                    <div class="log-timestamp">{{ log.timestamp|date:"d/m/Y H:i:s" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{% static 'diagnostico/js/diagnosis_detail.js' %}"></script>
+
+{% if diagnosis.status == 'PENDING' or diagnosis.status == 'PROCESSING' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ya se agrega data-diagnosis-id en el div principal
+    });
+</script>
+{% endif %}
+{% endblock %}

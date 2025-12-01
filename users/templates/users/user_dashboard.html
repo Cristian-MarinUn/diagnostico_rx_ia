@@ -30,7 +30,7 @@
                 </div>
                 <div class="dashboard-actions">
                     {% if user.rol == 'MEDICO_RADIOLOGO' %}
-                        <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary">
+                        <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="btn btn-primary">
                             <span>📊</span>
                             <span>Nuevo Diagnóstico</span>
                         </a>
@@ -165,7 +165,7 @@
 
             <div class="actions-grid">
                 {% if user.rol == 'MEDICO_RADIOLOGO' %}
-                <a href="#" class="action-card">
+                <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="action-card">
                     <div class="action-icon">
                         <span>🔍</span>
                     </div>
@@ -175,7 +175,7 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{% url 'diagnostico:diagnosis_list' %}" class="action-card">
                     <div class="action-icon">
                         <span>📋</span>
                     </div>
@@ -215,7 +215,7 @@
                     </p>
                 </a>
                 {% elif user.rol == 'TECNICO_SALUD' %}
-                <a href="#" class="action-card">
+                <a href="{% url 'medical_images:upload-image' %}" class="action-card">
                     <div class="action-icon">
                         <span>📤</span>
                     </div>
@@ -225,13 +225,13 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{% url 'diagnostico:diagnosis_list' %}" class="action-card">
                     <div class="action-icon">
-                        <span>📁</span>
+                        <span>📊</span>
                     </div>
-                    <h3 class="action-title">Mis Cargas</h3>
+                    <h3 class="action-title">Ver Diagnósticos</h3>
                     <p class="action-description">
-                        Revisa el estado de las imágenes que has subido
+                        Revisa los diagnósticos solicitados y completados
                     </p>
                 </a>
 

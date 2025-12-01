@@ -604,6 +604,41 @@ body {
     font-weight: 500;
 }
 
+/* Panel de detalles del paciente */
+.patient-details-panel {
+    background: rgba(16, 185, 129, 0.05);
+    border-left: 3px solid var(--secondary-light);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    word-break: break-all;
+}
+
 /* ===== Search Results ===== */
 .search-results {
     position: absolute;
