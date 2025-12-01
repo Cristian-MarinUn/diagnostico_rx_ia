@@ -28,7 +28,7 @@ print(f"✓ Usando usuario creador: {creator.get_full_name()} ({creator.rol})")
 
 # Datos de prueba
 FIRST_NAMES = [
-    'Juan', 'María', 'Carlos', 'Ana', 'Pedro', 'Isabel',
+    'Juan', 'María', '', 'Ana', 'Pedro', 'Isabel',
     'Diego', 'Rosa', 'Miguel', 'Laura', 'Andrés', 'Carmen'
 ]
 

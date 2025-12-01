@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'authentication',
     'users',
     'medical_images',
+    'diagnostico',
 
 
 

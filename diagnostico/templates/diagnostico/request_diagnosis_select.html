@@ -1,0 +1,183 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'diagnostico/css/request_diagnosis_select.css' %}">
+<link rel="stylesheet" href="{% static 'diagnostico/css/users_card.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="select-patient-container">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <a href="{% url 'users:user_dashboard' %}" style="color: var(--primary-color); text-decoration: none;">← Volver al dashboard</a>
+        </div>
+        <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">
+            🤖 Seleccionar Paciente
+        </h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+            Elige un paciente para solicitar un análisis de IA
+        </p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-section">
+        <form method="get" class="search-form">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    name="search" 
+                    class="search-input" 
+                    placeholder="Buscar por nombre, identificación o email..." 
+                    value="{{ search }}"
+                    autocomplete="off"
+                >
+                {% if search %}
+                <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="search-clear">✕</a>
+                {% endif %}
+                
+                <!-- Autocomplete Dropdown -->
+                <div id="autocompleteDropdown" class="autocomplete-dropdown" style="display: none;">
+                    <ul id="autocompleteList" class="autocomplete-list"></ul>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Patients List -->
+    <div class="patients-section">
+        {% if patients %}
+        <div class="patients-grid">
+            {% for patient in patients %}
+            <div class="patient-card">
+                <!-- Patient Header -->
+                <div class="patient-header">
+                    <div class="patient-avatar">
+                        {{ patient.first_name|slice:":1" }}{{ patient.last_name|slice:":1" }}
+                    </div>
+                    <div class="patient-info">
+                        <h3 class="patient-name">{{ patient.get_full_name }}</h3>
+                        <p class="patient-id">ID: {{ patient.identification }}</p>
+                    </div>
+                </div>
+
+                <!-- Patient Details -->
+                <div class="patient-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Edad</span>
+                        <span class="detail-value">{{ patient.get_age }} años</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Género</span>
+                        <span class="detail-value">{{ patient.get_gender_display_spanish }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">{{ patient.email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Imágenes</span>
+                        <span class="detail-value">{{ patient.medical_images.count }}</span>
+                    </div>
+                </div>
+
+                <!-- Images Preview -->
+                <div class="images-preview">
+                    <div class="preview-label">Imágenes disponibles:</div>
+                    <div class="image-types">
+                        {% for image in patient.medical_images.all|slice:":3" %}
+                        <span class="image-type-badge">
+                            {% if image.study_type == 'RX' %}🩻 RX
+                            {% elif image.study_type == 'TAC' %}🔬 TAC
+                            {% elif image.study_type == 'RMN' %}🧲 RMN
+                            {% elif image.study_type == 'ECO' %}📡 ECO
+                            {% elif image.study_type == 'MAM' %}🎗️ MAM
+                            {% else %}📋 {{ image.study_type }}
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                        {% if patient.medical_images.count > 3 %}
+                        <span class="more-badge">+{{ patient.medical_images.count|add:"-3" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <a href="{% url 'diagnostico:request_diagnosis' patient.id %}" class="patient-action-btn">
+                    <span>→</span>
+                    <span>Solicitar Diagnóstico</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Results Summary -->
+        <div class="results-summary">
+            <p>Se encontraron <strong>{{ patients.count }}</strong> paciente{{ patients.count|pluralize:"s" }} con imágenes disponibles</p>
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <h3>No hay pacientes disponibles</h3>
+            <p>
+                {% if search %}
+                    No se encontraron pacientes con los criterios de búsqueda
+                {% else %}
+                    No hay pacientes con imágenes cargadas en el sistema
+                {% endif %}
+            </p>
+            {% if search %}
+            <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                🔄 Limpiar búsqueda
+            </a>
+            {% else %}
+            <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                📤 Cargar Imágenes
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- Tarjeta flotante con usuarios de login -->
+    <div class="users-card">
+        <div class="users-card-header">
+            <h3>📋 pacientes para imagenes</h3>
+        </div>
+
+    
+        <div class="users-card-content">
+            <div class="user-item">
+                <div class="user-role">paciente 1</div>
+                <div class="user-email">Roberto Sánchez</div>
+                <div class="user-password">1001234567</div>
+            </div>
+            <div class="user-item">
+                <div class="user-role">paciente 2</div>
+                <div class="user-email">David Torres</div>
+                <div class="user-password">1003456789</div>
+            </div>
+            <div class="user-item">
+                <div class="user-role">paciente 3</div>
+                <div class="user-email">Isabel Flores</div>
+                <div class="user-password">1002345678</div>
+            </div>
+        </div>
+        <div class="users-card-footer">
+            <p class="users-card-note">💡 Datos de prueba para desarrollo</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'diagnostico/js/request_diagnosis_select.js' %}"></script>
+{% endblock %}

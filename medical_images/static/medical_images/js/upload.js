@@ -17,7 +17,7 @@
     
     // API Endpoints
     const API_UPLOAD_URL = '/api/images/upload/';
-    const API_PATIENTS_URL = '/api/images/patients/';
+    const API_PATIENTS_URL = '/diagnostico/api/autocomplete-patients/';
     
     // Variables de estado
     let selectedPatient = null;
@@ -42,6 +42,43 @@
 
         descriptionTextarea = document.getElementById('description');
         charCount = document.getElementById('char-count');
+
+        // Restaurar paciente seleccionado desde sessionStorage
+        const savedPatientId = sessionStorage.getItem('selected_patient_id');
+        const savedPatientName = sessionStorage.getItem('selected_patient_name');
+        
+        console.log('Verificando sessionStorage:', { savedPatientId, savedPatientName });
+        
+        if (savedPatientId && patientIdInput) {
+            patientIdInput.value = savedPatientId;
+            console.log('Obteniendo datos del paciente desde API con ID:', savedPatientId);
+            
+            // Usar el endpoint directo por ID
+            fetch(`/diagnostico/api/patient/${savedPatientId}/`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos recibidos del API:', data);
+                    if (data.patient) {
+                        console.log('✓ Paciente encontrado:', data.patient);
+                        displayPatientData(data.patient);
+                    } else if (data.error) {
+                        console.error('Error del API:', data.error);
+                        showAlert(data.error, 'danger');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error restaurando paciente:', err);
+                    showAlert('Error al cargar los datos del paciente: ' + err.message, 'danger');
+                });
+        } else {
+            console.warn('No hay paciente guardado en sessionStorage');
+        }
 
         // Inicializar modales de bootstrap si están disponibles; crear stubs si no
         try {
@@ -316,16 +353,12 @@
 
     async function searchPatients(query) {
         try {
-            const response = await fetch(`${API_PATIENTS_URL}?search=${encodeURIComponent(query)}`, {
-                headers: {
-                    'Authorization': `Bearer ${getAuthToken()}`
-                }
-            });
+            const response = await fetch(`${API_PATIENTS_URL}?q=${encodeURIComponent(query)}`);
             
             if (!response.ok) throw new Error('Error al buscar pacientes');
             
             const data = await response.json();
-            displayPatientResults(data.data);
+            displayPatientResults(data.patients);
             
         } catch (error) {
             console.error('Error:', error);
@@ -346,8 +379,8 @@
             const item = document.createElement('div');
             item.className = 'patient-result-item';
             item.innerHTML = `
-                <h6>${patient.nombre_completo}</h6>
-                <p>ID: ${patient.identificacion} • Edad: ${patient.edad} años</p>
+                <h6>${patient.name}</h6>
+                <p>ID: ${patient.identification} • Edad: ${patient.age} años</p>
             `;
             
             item.addEventListener('click', () => selectPatient(patient));
@@ -357,29 +390,55 @@
         patientResults.classList.add('show');
     }
 
+    function displayPatientData(patient) {
+        selectedPatient = patient;
+        if (patientIdInput) {
+            patientIdInput.value = patient.id;
+        }
+        
+        // Mostrar datos del paciente
+        const nameEl = document.getElementById('selected-patient-name');
+        const idEl = document.getElementById('selected-patient-id');
+        const ageEl = document.getElementById('selected-patient-age');
+        const identEl = document.getElementById('patient-identification');
+        const phoneEl = document.getElementById('patient-phone');
+        const emailEl = document.getElementById('patient-email');
+        
+        if (nameEl) nameEl.textContent = patient.name;
+        if (idEl) idEl.textContent = `ID: ${patient.identification}`;
+        if (ageEl) ageEl.textContent = `Edad: ${patient.age} años • ${patient.gender === 'M' ? 'Masculino' : patient.gender === 'F' ? 'Femenino' : 'Otro'}`;
+        if (identEl) identEl.textContent = patient.identification;
+        if (phoneEl) phoneEl.textContent = patient.phone || '--';
+        if (emailEl) emailEl.textContent = patient.email || '--';
+        
+        console.log('Datos del paciente cargados:', patient);
+    }
+
     function selectPatient(patient) {
         selectedPatient = patient;
         patientIdInput.value = patient.id;
         
-        // Mostrar paciente seleccionado
-        selectedPatientCard.classList.remove('d-none');
-        document.getElementById('selected-patient-name').textContent = patient.nombre_completo;
-        document.getElementById('selected-patient-id').textContent = `ID: ${patient.identificacion}`;
-        document.getElementById('selected-patient-age').textContent = `Edad: ${patient.edad} años • ${patient.genero === 'M' ? 'Masculino' : patient.genero === 'F' ? 'Femenino' : 'Otro'}`;
+        // Guardar el patient_id en sessionStorage
+        sessionStorage.setItem('selected_patient_id', patient.id);
+        sessionStorage.setItem('selected_patient_name', patient.name);
+        
+        // Mostrar datos del paciente
+        displayPatientData(patient);
         
         // Limpiar búsqueda
-        patientSearch.value = patient.nombre_completo;
-        patientResults.classList.remove('show');
+        if (patientSearch) patientSearch.value = patient.name;
+        if (patientResults) patientResults.classList.remove('show');
         
         // Limpiar error si existe
         clearFieldError(patientSearch);
     }
 
-    window.clearPatient = function() {
-        selectedPatient = null;
-        patientIdInput.value = '';
-        selectedPatientCard.classList.add('d-none');
-        patientSearch.value = '';
+    window.changePatient = function() {
+        // Limpiar sessionStorage
+        sessionStorage.removeItem('selected_patient_id');
+        sessionStorage.removeItem('selected_patient_name');
+        // Redirigir a la página anterior
+        window.history.back();
     };
 
     function closePatientResults(e) {
@@ -408,7 +467,7 @@
         
         // Validar paciente
         if (!selectedPatient) {
-            markFieldInvalid(patientSearch, 'Debe seleccionar un paciente');
+            showAlert('No se encontró información del paciente. Por favor, regresa a la página anterior y selecciona un paciente.', 'danger');
             isValid = false;
         }
         
