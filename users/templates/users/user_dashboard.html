@@ -35,7 +35,7 @@
                             <span>Nuevo Diagnóstico</span>
                         </a>
                     {% elif user.rol == 'TECNICO_SALUD' %}
-                        <a href="{% url 'medical_images:upload-image' %}" class="btn btn-primary">
+                        <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="btn btn-primary">
                             <span>📤</span>
                             <span>Cargar Imágenes</span>
                         </a>
@@ -215,13 +215,23 @@
                     </p>
                 </a>
                 {% elif user.rol == 'TECNICO_SALUD' %}
-                <a href="{% url 'medical_images:upload-image' %}" class="action-card">
+                <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="action-card">
                     <div class="action-icon">
                         <span>📤</span>
                     </div>
                     <h3 class="action-title">Cargar Imágenes</h3>
                     <p class="action-description">
                         Sube nuevas imágenes médicas al sistema
+                    </p>
+                </a>
+
+                <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="action-card">
+                    <div class="action-icon">
+                        <span>🤖</span>
+                    </div>
+                    <h3 class="action-title">Solicitar Diagnóstico</h3>
+                    <p class="action-description">
+                        Solicita un análisis de IA para las imágenes cargadas
                     </p>
                 </a>
 
@@ -317,7 +327,7 @@
                         Solicitar Diagnóstico
                     </a>
                     {% elif user.rol == 'TECNICO_SALUD' %}
-                    <a href="#" class="btn btn-primary">
+                    <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="btn btn-primary">
                         Cargar Imágenes
                     </a>
                     {% endif %}
