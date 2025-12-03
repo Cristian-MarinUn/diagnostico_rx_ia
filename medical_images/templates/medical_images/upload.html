@@ -11,7 +11,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'medical_images/css/main.css' %}">
 <link rel="stylesheet" href="{% static 'authentication/css/users_card.css' %}">
-<link rel="stylesheet" href="{% static 'diagnostico/css/users_card.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -46,36 +45,8 @@
                     <!-- Alertas -->
                     <div id="alert-container"></div>
 
-                    <!-- Sección de Búsqueda de Paciente (inicial) -->
-                    <div id="patient-search-section">
-                        <div class="section-header">
-                            <h5>
-                                <i class="fas fa-user-injured text-primary me-2"></i>
-                                Seleccionar Paciente
-                            </h5>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">🔍</span>
-                                    <input 
-                                        type="text" 
-                                        class="form-control form-control-lg" 
-                                        id="patient_search"
-                                        placeholder="Buscar por nombre, cédula o email..."
-                                        autocomplete="off"
-                                    >
-                                </div>
-                                <div id="patient-results" class="list-group" style="display: none; max-height: 400px; overflow-y: auto;"></div>
-                            </div>
-                        </div>
-
-                        <hr class="my-4">
-                    </div>
-
                     <!-- Formulario -->
-                    <form id="upload-form" enctype="multipart/form-data" style="display: none;">
+                    <form id="upload-form" enctype="multipart/form-data">
                         {% csrf_token %}
 
                         <!-- Sección 1: Información del Paciente -->
@@ -91,8 +62,8 @@
                                 <!-- Card de Paciente Seleccionado (Visible por defecto) -->
                                 <div id="selected-patient" class="selected-patient-card">
                                     <div class="d-flex justify-content-between align-items-start">
-                                        <div style="flex: 1;">
-                                            <h6 class="mb-2" id="selected-patient-name" style="font-size: 1.25rem;"></h6>
+                                        <div>
+                                            <h6 class="mb-2" id="selected-patient-name"></h6>
                                             <p class="mb-1 text-muted" id="selected-patient-id"></p>
                                             <small class="text-muted" id="selected-patient-age"></small>
                                         </div>
@@ -191,12 +162,10 @@
                                             <div class="col-auto">
                                                 <button 
                                                     type="button" 
-                                                    class="btn btn-sm btn-outline-danger"
+                                                    class="btn btn-outline-danger"
                                                     onclick="clearFile()"
-                                                >
-                                                
-                                                    <i class="fas fa-trash">Cancelar</i>
-                                                </button>
+                                                >Cancelar
+                                            </button>
                                             </div>
                                         </div>
                                     </div>
@@ -363,38 +332,6 @@
 
         </div>
 
-    </div>
-</div>
-
-<!-- Tarjeta flotante con pacientes para carga de imágenes -->
-<div class="users-card">
-    <div class="users-card-header">
-        <h3>📋 Pacientes para Imágenes</h3>
-    </div>
-
-    <div class="users-card-content">
-        <div class="user-item">
-            <div class="user-role">Paciente 1</div>
-            <div class="user-email">Roberto Sánchez</div>
-            <div class="user-password">1001234567</div>
-        </div>
-        <div class="user-item">
-            <div class="user-role">Paciente 2</div>
-            <div class="user-email">David Torres</div>
-            <div class="user-password">1003456789</div>
-        </div>
-        <div class="user-item">
-            <div class="user-role">Paciente 3</div>
-            <div class="user-email">Isabel Flores</div>
-            <div class="user-password">1002345678</div>
-        </div>
-    </div>
-    <div class="users-card-footer">
-        <a href="{% url 'diagnostico:request_diagnosis_select' %}" style="display: block; text-decoration: none; color: inherit;">
-            <p class="users-card-note" style="cursor: pointer; margin: 0;">
-                📋 Solicitar Diagnóstico →
-            </p>
-        </a>
     </div>
 </div>
 

@@ -343,7 +343,7 @@ body {
 .btn-outline-secondary:hover {
     background: rgba(102, 126, 234, 0.1);
     border-color: var(--primary-light);
-    color: var(--primary-light);
+    color: white;
 }
 
 .btn-outline-danger {
@@ -367,9 +367,9 @@ body {
     border-radius: 0.75rem;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.3rem;
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.1rem;
     transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s;
     box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
 }
