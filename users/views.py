@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.paginator import Paginator
-from datetime import timedelta
+from datetime import timedelta, date
 from authentication.models import User, Session, Log
 from django.utils.crypto import get_random_string
 from django.views import View
@@ -20,6 +20,131 @@ from django.views.generic import TemplateView
 from django.middleware.csrf import get_token
 from .models import Patient
 from .forms import PatientRegistrationForm
+
+
+# ================================
+# CU-013: MÓDULO DE DIAGNÓSTICO ASISTIDO POR IA (SIMULACIÓN)
+# ================================
+
+
+@login_required
+def request_diagnosis_ia_view(request):
+    """
+    Módulo simplificado para 'Solicitar Análisis IA' según CU-013.
+    - Solo accesible para médicos radiólogos
+    - Permite seleccionar un paciente y simular la visualización de un
+      diagnóstico preliminar (imagen se muestra como espacio vacío para
+      futuras integraciones).
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+
+    # Si no existen pacientes en la base de datos, crear algunos de prueba
+    # Esto facilita la simulación del flujo cuando la instalación es limpia
+    if not patients.exists():
+        try:
+            sample_data = [
+                ('100001', 'Juan', 'Pérez', date(1980, 5, 12), 'M'),
+                ('100002', 'María', 'García', date(1975, 8, 3), 'F'),
+                ('100003', 'Carlos', 'Rodríguez', date(1990, 2, 20), 'M'),
+                ('100004', 'Laura', 'Pineda', date(1985, 11, 30), 'F'),
+                ('100005', 'Andrés', 'Ramírez', date(1978, 7, 14), 'M'),
+            ]
+            created = []
+            for ident, fn, ln, dob, gender in sample_data:
+                p = Patient.objects.create(
+                    identification=ident,
+                    first_name=fn,
+                    last_name=ln,
+                    date_of_birth=dob,
+                    gender=gender,
+                    email=f'{fn.lower()}.{ln.lower()}@example.com',
+                    phone='0000000000',
+                    created_by=request.user,
+                    is_active=True,
+                )
+                created.append(p)
+            patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+            messages.info(request, f'Se han creado {len(created)} pacientes de prueba para la simulación.')
+        except Exception:
+            # No bloquear el flujo si la creación falla
+            patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    selected_patient = None
+    simulated_diag = None
+
+    if request.method == 'POST':
+        patient_id = request.POST.get('patient_id')
+        action = request.POST.get('action')
+        try:
+            selected_patient = Patient.objects.get(id=patient_id)
+        except Exception:
+            selected_patient = None
+
+        # Simular la obtención de un diagnóstico preliminar
+        if action == 'simulate' and selected_patient:
+            # Búsqueda simulada de diagnósticos del paciente
+            # En producción, esto consultaría AIDiagnosis.objects.filter(patient=selected_patient)
+            simulated_diag = {
+                'id': 1,
+                'patient_id': selected_patient.id,
+                'patient_name': selected_patient.get_full_name(),
+                'patient_id_doc': selected_patient.identification,
+                'title': f'Diagnóstico preliminar para {selected_patient.get_full_name()}',
+                'result': 'Posible consolidación pulmonar en lóbulo inferior derecho',
+                'confidence': 87.4,
+                'observations': [
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                'image_available': False,
+            }
+
+        # Manejo de comentarios (CU-014)
+        if action == 'save_comment' and selected_patient:
+            comment_text = request.POST.get('comment_text', '').strip()
+            if not comment_text:
+                messages.error(request, 'Debe ingresar al menos una observación')
+            else:
+                # Registrar comentario en logs como auditoría (simulación de guardado en BD de diagnóstico)
+                try:
+                    # Incluimos un marcador con patient_id para identificar comentarios específicos del paciente
+                    diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+                    descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
+                    Log.objects.create(
+                        user=request.user,
+                        accion='USER_UPDATED',
+                        nivel='INFO',
+                        descripcion=descripcion,
+                        ip_address=get_client_ip(request)
+                    )
+                    messages.success(request, 'Comentarios guardados exitosamente')
+                except Exception as e:
+                    messages.error(request, 'No fue posible guardar los comentarios. Intente nuevamente')
+
+    context = {
+        'patients': patients,
+        'selected_patient': selected_patient,
+        'simulated_diag': simulated_diag,
+    }
+
+    # Cargar comentarios previamente registrados para el paciente específico
+    diag_comments = []
+    try:
+        if selected_patient:
+            # Usamos un marcador con patient_id en la descripción para filtrar comentarios específicos
+            diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+            diag_comments = Log.objects.filter(descripcion__contains=diag_marker).order_by('-timestamp')
+    except Exception:
+        diag_comments = []
+
+    context['diag_comments'] = diag_comments
+
+    return render(request, 'users/request_diagnosis_ia.html', context)
 
 # ================================
 # PERFIL DE USUARIO

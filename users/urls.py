@@ -13,6 +13,7 @@ urlpatterns = [
     path('dashboard/admin/user/create/', views.user_create_view, name='user_create'),
     path('dashboard/admin/list/', views.user_list_view, name='user_list'),
     path('dashboard/patient/create/', views.patient_create_view, name='patient_create'),
+    path('diagnosis/request/', views.request_diagnosis_ia_view, name='request_diagnosis_ia'),
 
 # ========== CU-006: Autenticación de Dos Factores ==========
     path(
