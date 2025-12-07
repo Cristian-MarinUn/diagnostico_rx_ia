@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
+<script src="{% static 'users/js/diagnosis_ia.js' %}"></script>
 <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
     .ia-module-wrapper { padding: 2rem 1rem; }
@@ -136,7 +137,7 @@
           </div>
 
           <div style="display:flex; gap:0.5rem;">
-            <button name="action" value="simulate" class="btn-simulate" type="submit">Solicitar Análisis IA</button>
+            <button name="action" value="simulate" class="btn-simulate" type="submit">Solicitar Diagnóstico Preliminar</button>
           </div>
         </div>
       </form>
@@ -191,22 +192,24 @@
 
         <!-- Lista de comentarios guardados -->
         <div style="margin-bottom:1rem;">
-          {% if diag_comments and diag_comments.exists %}
-            <ul style="list-style:none; padding-left:0;">
-              {% for c in diag_comments %}
-                <li style="padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-                  <div style="color:#93c5fd; font-weight:600;">{{ c.user.get_full_name }} <span style="color:#94a3b8; font-weight:400;">— {{ c.timestamp|date:'d/m/Y H:i' }}</span></div>
-                  <div style="color:#cbd5e1; margin-top:0.25rem;">{{ c.descripcion }}</div>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <div style="color:#94a3b8;">Aún no hay comentarios guardados para este diagnóstico.</div>
-          {% endif %}
+          <ul id="comments-list" style="list-style:none; padding-left:0;">
+            {% for c in diag_comments %}
+              <li style="padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                <div style="color:#93c5fd; font-weight:600;">{{ c.user.get_full_name }} <span style="color:#94a3b8; font-weight:400;">— {{ c.timestamp|date:'d/m/Y H:i' }}</span></div>
+                <div style="color:#cbd5e1; margin-top:0.25rem;">{{ c.descripcion }}</div>
+              </li>
+            {% empty %}
+              <div style="color:#94a3b8;">Aún no hay comentarios guardados para este diagnóstico.</div>
+            {% endfor %}
+          </ul>
         </div>
 
         <!-- Formulario para agregar comentario -->
-        <form method="post">
+        <div id="finalize-message" class="message success" style="margin-bottom:1rem; display:none;"></div>
+        {% if finalized %}
+          <div class="message success" style="margin-bottom:1rem;">Diagnóstico finalizado. No se pueden agregar más comentarios.</div>
+        {% else %}
+        <form id="comment-form" method="post" action="{% url 'users:request_diagnosis_ia' %}" data-url="{% url 'users:request_diagnosis_ia' %}">
           {% csrf_token %}
           <input type="hidden" name="patient_id" value="{{ selected_patient.id }}">
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
@@ -214,10 +217,23 @@
             <textarea id="comment_text" name="comment_text" rows="4" class="styled-textarea" placeholder="Escribe tus observaciones clínicas aquí..."></textarea>
             <div style="display:flex; gap:0.5rem;">
               <button name="action" value="save_comment" class="btn-simulate" type="submit" style="width:auto;">Guardar comentarios</button>
-              <button type="reset" class="btn-reset">Limpiar</button>
+              <button id="finalize-btn" type="button" class="btn-reset" data-url="{% url 'users:request_diagnosis_ia' %}" data-patient="{{ selected_patient.id }}">Finalizar diagnóstico</button>
             </div>
           </div>
         </form>
+        {% endif %}
+
+        <!-- Modal de confirmación -->
+        <div id="finalize-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); align-items:center; justify-content:center; z-index:9999;">
+          <div style="background:#1e293b; border-radius:10px; padding:2rem; min-width:320px; box-shadow:0 8px 32px rgba(0,0,0,0.25); position:relative;">
+            <button id="close-modal-btn" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <h2 style="color:#e2e8f0; margin-bottom:1rem;">¿Desea finalizar el diagnóstico?</h2>
+            <div style="display:flex; gap:1rem; justify-content:center; margin-top:1.5rem;">
+              <button id="finalize-yes-btn" class="btn-simulate" style="width:100px;">Sí</button>
+              <button id="finalize-no-btn" class="btn-reset" style="width:100px;">No</button>
+            </div>
+          </div>
+        </div>
       </div>
     {% endif %}
 

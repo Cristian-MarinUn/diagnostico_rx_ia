@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -141,6 +142,8 @@ def request_diagnosis_ia_view(request):
     selected_patient = None
     simulated_diag = None
 
+
+    finalized = False
     if request.method == 'POST':
         patient_id = request.POST.get('patient_id')
         action = request.POST.get('action')
@@ -149,10 +152,36 @@ def request_diagnosis_ia_view(request):
         except Exception:
             selected_patient = None
 
+        # AJAX para guardar comentario
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if action == 'save_comment' and selected_patient:
+                comment_text = request.POST.get('comment_text', '').strip()
+                if not comment_text:
+                    return JsonResponse({'error': 'Debe ingresar al menos una observación'})
+                try:
+                    diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+                    descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
+                    log = Log.objects.create(
+                        user=request.user,
+                        accion='USER_UPDATED',
+                        nivel='INFO',
+                        descripcion=descripcion,
+                        ip_address=get_client_ip(request)
+                    )
+                    return JsonResponse({
+                        'success': True,
+                        'author': request.user.get_full_name(),
+                        'timestamp': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+                        'text': comment_text
+                    })
+                except Exception as e:
+                    return JsonResponse({'error': 'No fue posible guardar los comentarios. Intente nuevamente'})
+            if action == 'finalize_diag' and selected_patient:
+                finalized = True
+                return JsonResponse({'success': 'Diagnóstico finalizado correctamente.'})
+
         # Simular la obtención de un diagnóstico preliminar
         if action == 'simulate' and selected_patient:
-            # Búsqueda simulada de diagnósticos del paciente
-            # En producción, esto consultaría AIDiagnosis.objects.filter(patient=selected_patient)
             simulated_diag = {
                 'id': 1,
                 'patient_id': selected_patient.id,
@@ -175,9 +204,7 @@ def request_diagnosis_ia_view(request):
             if not comment_text:
                 messages.error(request, 'Debe ingresar al menos una observación')
             else:
-                # Registrar comentario en logs como auditoría (simulación de guardado en BD de diagnóstico)
                 try:
-                    # Incluimos un marcador con patient_id para identificar comentarios específicos del paciente
                     diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
                     descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
                     Log.objects.create(
@@ -190,6 +217,18 @@ def request_diagnosis_ia_view(request):
                     messages.success(request, 'Comentarios guardados exitosamente')
                 except Exception as e:
                     messages.error(request, 'No fue posible guardar los comentarios. Intente nuevamente')
+
+        # CU-015: Finalizar diagnóstico
+        if action == 'finalize_diag' and selected_patient:
+            finalized = True
+            messages.success(request, 'Diagnóstico finalizado correctamente. No se pueden agregar más comentarios.')
+
+    context = {
+        'patients': patients,
+        'selected_patient': selected_patient,
+        'simulated_diag': simulated_diag,
+        'finalized': finalized,
+    }
 
     context = {
         'patients': patients,
