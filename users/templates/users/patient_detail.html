@@ -1,0 +1,293 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Detalles del Paciente - {{ patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+    
+    .detail-wrapper { padding: 2rem 1rem; }
+    .detail-container { max-width: 900px; margin: 0 auto; }
+    
+    .detail-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .detail-header h1 {
+        color: #e2e8f0;
+        font-size: 1.75rem;
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        margin: 0;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid rgba(100, 116, 139, 0.4);
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        background: rgba(100, 116, 139, 0.3);
+        color: #cbd5e1;
+        border-color: rgba(100, 116, 139, 0.6);
+    }
+    
+    .detail-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+    
+    .detail-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .detail-section-title {
+        color: #e2e8f0;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .detail-value {
+        color: #e2e8f0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    
+    .detail-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.875rem;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        border-radius: 6px;
+        color: #86efac;
+        font-weight: 600;
+        font-size: 0.9rem;
+        width: fit-content;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+    
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid rgba(100, 116, 139, 0.4);
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(100, 116, 139, 0.3);
+        color: #cbd5e1;
+        border-color: rgba(100, 116, 139, 0.6);
+    }
+    
+    .info-box {
+        background: rgba(34, 197, 94, 0.1);
+        border-left: 4px solid rgba(34, 197, 94, 0.5);
+        padding: 1rem;
+        border-radius: 6px;
+        color: #86efac;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrapper">
+    <div class="detail-container">
+        <div class="detail-header">
+            <h1>
+                <span>👤</span>
+                <span>{{ patient.get_full_name }}</span>
+            </h1>
+            <a href="{% url 'users:search_patient' %}" class="btn-back">← Volver a Búsqueda</a>
+        </div>
+
+        <!-- Información Principal -->
+        <div class="detail-card">
+            <div class="detail-section">
+                <div class="detail-section-title">Información Personal</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Nombre Completo</span>
+                        <span class="detail-value">{{ patient.get_full_name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Número de Documento</span>
+                        <span class="detail-value">{{ patient.identification }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha de Nacimiento</span>
+                        <span class="detail-value">{{ patient.date_of_birth|date:"d \d\e F \d\e Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Género</span>
+                        <span class="detail-value">
+                            {% if patient.gender == 'M' %}
+                                Masculino
+                            {% elif patient.gender == 'F' %}
+                                Femenino
+                            {% else %}
+                                Otro
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="detail-section">
+                <div class="detail-section-title">Información de Contacto</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">{{ patient.email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Teléfono</span>
+                        <span class="detail-value">{{ patient.phone }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="detail-section">
+                <div class="detail-section-title">Estado</div>
+                <div class="detail-item">
+                    <span class="detail-label">Estatus del Paciente</span>
+                    <div style="margin-top: 0.5rem;">
+                        {% if patient.is_active %}
+                            <span class="detail-status">
+                                <span>✓</span>
+                                <span>Activo</span>
+                            </span>
+                        {% else %}
+                            <span class="detail-status" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                                <span>✕</span>
+                                <span>Inactivo</span>
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="detail-section">
+                <div class="detail-section-title">Información Adicional</div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Registrado Por</span>
+                        <span class="detail-value">{{ patient.created_by.get_full_name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha de Registro</span>
+                        <span class="detail-value">{{ patient.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>ℹ️ Nota:</strong> Este paciente está activo en el sistema y disponible para realizar diagnósticos.
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="action-buttons">
+                <a href="{% url 'users:request_diagnosis_ia' %}?patient_id={{ patient.id }}" class="btn-primary" target="_blank" rel="noopener noreferrer">
+                    <span>🤖</span>
+                    <span>Solicitar Análisis IA</span>
+                </a>
+                <a href="{% url 'users:search_patient' %}" class="btn-secondary">
+                    <span>🔍</span>
+                    <span>Nueva Búsqueda</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

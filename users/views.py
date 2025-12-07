@@ -23,6 +23,71 @@ from .forms import PatientRegistrationForm
 
 
 # ================================
+# CU-018: BÚSQUEDA DE PACIENTES
+# ================================
+
+@login_required
+def search_patient_view(request):
+    """
+    Módulo de búsqueda de pacientes según CU-018.
+    - Búsqueda por nombre (nombre completo) o ID (documento/cédula)
+    - Solo accesible para médicos radiólogos
+    - Muestra resultados con información del paciente
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    results = []
+    search_query = request.GET.get('q', '').strip()
+
+    if search_query:
+        # Búsqueda por nombre completo o por identificación (cédula)
+        results = Patient.objects.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(identification__icontains=search_query),
+            is_active=True
+        ).order_by('last_name', 'first_name')
+
+        if not results.exists():
+            messages.info(request, f'No se encontraron coincidencias para "{search_query}"')
+
+    context = {
+        'results': results,
+        'search_query': search_query,
+    }
+
+    return render(request, 'users/search_patient.html', context)
+
+
+@login_required
+def patient_detail_view(request, patient_id):
+    """
+    Vista detallada del paciente según CU-018.
+    - Muestra información completa del paciente seleccionado
+    - Solo accesible para médicos radiólogos
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    try:
+        patient = Patient.objects.get(id=patient_id, is_active=True)
+    except Patient.DoesNotExist:
+        messages.error(request, 'El paciente no fue encontrado.')
+        return redirect('users:search_patient')
+
+    context = {
+        'patient': patient,
+    }
+
+    return render(request, 'users/patient_detail.html', context)
+
+
+# ================================
 # CU-013: MÓDULO DE DIAGNÓSTICO ASISTIDO POR IA (SIMULACIÓN)
 # ================================
 

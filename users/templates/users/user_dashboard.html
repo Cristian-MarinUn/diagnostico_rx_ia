@@ -165,17 +165,23 @@
 
             <div class="actions-grid">
                 {% if user.rol == 'MEDICO_RADIOLOGO' %}
-<<<<<<< Updated upstream
-                <a href="{% url 'diagnostico:request_diagnosis_select' %}" class="action-card">
-=======
                 <a href="{% url 'users:request_diagnosis_ia' %}" class="action-card" target="_blank" rel="noopener noreferrer">
->>>>>>> Stashed changes
                     <div class="action-icon">
                         <span>🤖</span>
                     </div>
                     <h3 class="action-title">Solicitar Análisis IA</h3>
                     <p class="action-description">
                         Obtén un diagnóstico preliminar asistido por IA en segundos
+                    </p>
+                </a>
+
+                <a href="{% url 'users:search_patient' %}" class="action-card">
+                    <div class="action-icon">
+                        <span>🔍</span>
+                    </div>
+                    <h3 class="action-title">Buscar Paciente</h3>
+                    <p class="action-description">
+                        Encuentra y consulta información de pacientes por nombre o documento
                     </p>
                 </a>
 

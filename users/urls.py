@@ -14,6 +14,10 @@ urlpatterns = [
     path('dashboard/admin/list/', views.user_list_view, name='user_list'),
     path('dashboard/patient/create/', views.patient_create_view, name='patient_create'),
     path('diagnosis/request/', views.request_diagnosis_ia_view, name='request_diagnosis_ia'),
+    
+    # CU-018: Búsqueda de Pacientes
+    path('search-patient/', views.search_patient_view, name='search_patient'),
+    path('patient/<int:patient_id>/', views.patient_detail_view, name='patient_detail'),
 
 # ========== CU-006: Autenticación de Dos Factores ==========
     path(
