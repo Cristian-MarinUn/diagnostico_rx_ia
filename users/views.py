@@ -2,7 +2,7 @@
 # ARCHIVO: users/views.py
 # ================================
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
@@ -20,6 +20,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.middleware.csrf import get_token
 from .models import Patient
+from diagnostico.models import AIDiagnosis
 from .forms import PatientRegistrationForm
 
 
@@ -88,6 +89,61 @@ def patient_detail_view(request, patient_id):
     return render(request, 'users/patient_detail.html', context)
 
 
+@login_required
+def diagnosis_history_view(request):
+    """
+    Implementación de CU-016: Historial de Diagnósticos.
+    - Solo accesible por médicos radiólogos
+    - Permite buscar por nombre o identificación y ver diagnósticos asociados
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder al Historial de Diagnósticos.')
+        return redirect('users:user_dashboard')
+
+    query = request.GET.get('q', '').strip()
+    patient_id = request.GET.get('patient_id', '').strip()
+    patients = []
+    patient = None
+    diagnoses = []
+
+    # Buscar paciente por id si se proporcionó
+    if patient_id:
+        try:
+            # try numeric id
+            patient = Patient.objects.get(id=int(patient_id), is_active=True)
+        except Exception:
+            try:
+                # fallback by identification
+                patient = Patient.objects.get(identification=patient_id, is_active=True)
+            except Patient.DoesNotExist:
+                patient = None
+
+    # Si no se obtuvo el paciente por id, ejecutar búsqueda por q
+    if not patient and query:
+        patients = Patient.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(identification__icontains=query),
+            is_active=True
+        ).order_by('last_name', 'first_name')
+
+        if patients.count() == 1:
+            patient = patients.first()
+
+    if patient:
+        # Obtener diagnósticos del paciente
+        diagnoses = AIDiagnosis.objects.filter(patient=patient).order_by('-created_at')
+
+    context = {
+        'query': query,
+        'patients': patients,
+        'patient': patient,
+        'diagnoses': diagnoses,
+    }
+    return render(request, 'users/diagnosis_history.html', context)
+
+
 # ================================
 # CU-013: MÓDULO DE DIAGNÓSTICO ASISTIDO POR IA (SIMULACIÓN)
 # ================================
@@ -153,32 +209,57 @@ def request_diagnosis_ia_view(request):
             selected_patient = None
 
         # AJAX para guardar comentario
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            if action == 'save_comment' and selected_patient:
-                comment_text = request.POST.get('comment_text', '').strip()
-                if not comment_text:
-                    return JsonResponse({'error': 'Debe ingresar al menos una observación'})
-                try:
-                    diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
-                    descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
-                    log = Log.objects.create(
-                        user=request.user,
-                        accion='USER_UPDATED',
-                        nivel='INFO',
-                        descripcion=descripcion,
-                        ip_address=get_client_ip(request)
-                    )
-                    return JsonResponse({
-                        'success': True,
-                        'author': request.user.get_full_name(),
-                        'timestamp': log.timestamp.strftime('%d/%m/%Y %H:%M'),
-                        'text': comment_text
-                    })
-                except Exception as e:
-                    return JsonResponse({'error': 'No fue posible guardar los comentarios. Intente nuevamente'})
-            if action == 'finalize_diag' and selected_patient:
-                finalized = True
-                return JsonResponse({'success': 'Diagnóstico finalizado correctamente.'})
+        if action == 'save_comment' and selected_patient and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            comment_text = request.POST.get('comment_text', '').strip()
+            if not comment_text:
+                return JsonResponse({'error': 'Debe ingresar al menos una observación'})
+            try:
+                diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+                descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
+                log = Log.objects.create(
+                    user=request.user,
+                    accion='USER_UPDATED',
+                    nivel='INFO',
+                    descripcion=descripcion,
+                    ip_address=get_client_ip(request)
+                )
+                return JsonResponse({
+                    'success': True,
+                    'author': request.user.get_full_name(),
+                    'timestamp': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+                    'text': comment_text
+                })
+            except Exception as e:
+                return JsonResponse({'error': 'No fue posible guardar los comentarios. Intente nuevamente'})
+
+        if action == 'finalize_diag' and selected_patient:
+            # Crear diagnóstico real en AIDiagnosis
+            from diagnostico.models import AIDiagnosis, DiagnosisLog
+            diag = AIDiagnosis.objects.create(
+                patient=selected_patient,
+                requested_by=request.user,
+                status='COMPLETED',
+                diagnosis_result='Posible consolidación pulmonar en lóbulo inferior derecho',
+                confidence_level=87.4,
+                ai_observations=[
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                model_version='SIMULADO',
+            )
+            DiagnosisLog.objects.create(
+                diagnosis=diag,
+                action='COMPLETED',
+                performed_by=request.user,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            finalized = True
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.'})
+            else:
+                messages.success(request, 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.')
 
         # Simular la obtención de un diagnóstico preliminar
         if action == 'simulate' and selected_patient:
@@ -220,8 +301,32 @@ def request_diagnosis_ia_view(request):
 
         # CU-015: Finalizar diagnóstico
         if action == 'finalize_diag' and selected_patient:
+            # Crear diagnóstico real en AIDiagnosis
+            from diagnostico.models import AIDiagnosis
+            diag = AIDiagnosis.objects.create(
+                patient=selected_patient,
+                requested_by=request.user,
+                status='COMPLETED',
+                diagnosis_result='Posible consolidación pulmonar en lóbulo inferior derecho',
+                confidence_level=87.4,
+                ai_observations=[
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                model_version='SIMULADO',
+            )
             finalized = True
-            messages.success(request, 'Diagnóstico finalizado correctamente. No se pueden agregar más comentarios.')
+            # Registrar log
+            from diagnostico.models import DiagnosisLog
+            DiagnosisLog.objects.create(
+                diagnosis=diag,
+                action='COMPLETED',
+                performed_by=request.user,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            messages.success(request, 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.')
 
     context = {
         'patients': patients,
