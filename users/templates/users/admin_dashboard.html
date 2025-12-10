@@ -142,7 +142,7 @@
             </div>
 
             <div class="actions-grid">
-                <a href="#" class="action-card">
+                <a href="{% url 'users:user_list' %}" class="action-card">
                     <div class="action-icon">
                         <span>👥</span>
                     </div>
@@ -226,7 +226,6 @@
                             <th>Rol</th>
                             <th>Estado</th>
                             <th>Último Acceso</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -262,17 +261,7 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="table-actions">
-                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Ver perfil">
-                                        <span>👁️</span>
-                                    </a>
-                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">
-                                        <span>✏️</span>
-                                    </a>
-                                    <button class="btn btn-danger btn-icon-sm" title="Desactivar">
-                                        <span>🚫</span>
-                                    </button>
-                                </div>
+                                <!-- Acciones removidas, ahora solo en Gestionar Usuarios -->
                             </td>
                         </tr>
                         {% endfor %}
