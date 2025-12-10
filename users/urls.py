@@ -4,6 +4,8 @@ from .views import Verify2FAView
 app_name = 'users'
 
 urlpatterns = [
+    # CU-017: Comparar Estudios
+    path('compare-studies/', views.compare_studies_view, name='compare_studies'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('profile/change-password/', views.change_password_view, name='change_password'),

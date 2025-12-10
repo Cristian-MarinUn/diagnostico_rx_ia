@@ -1,0 +1,107 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Comparar Estudios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compare-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: var(--surface);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px #0003;
+        padding: 2.5rem 2rem;
+        color: var(--text-primary);
+    }
+    .compare-header {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        color: var(--primary-color);
+        letter-spacing: -1px;
+    }
+    .compare-step { margin-bottom: 2rem; }
+    .compare-images {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    .image-placeholder {
+        width: 320px;
+        height: 320px;
+        background: var(--background-light);
+        border: 2px dashed var(--gray-400);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        font-style: italic;
+        transition: background 0.2s;
+    }
+    .compare-select {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 6px;
+        border: 1px solid var(--gray-600);
+        background: var(--background-light);
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+    .compare-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: var(--text-secondary);
+    }
+    .compare-message {
+        color: var(--danger-color);
+        font-weight: 500;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compare-container">
+    <div style="margin-bottom:1.5rem;">
+        <a href="{% url 'users:user_dashboard' %}" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;padding:0.875rem 1.25rem;background:rgba(100,116,139,0.2);border:1px solid rgba(100,116,139,0.4);border-radius:8px;color:#94a3b8;font-weight:600;cursor:pointer;transition:all 0.3s ease;">
+            ← Volver al Dashboard
+        </a>
+    </div>
+    <div class="compare-header">Comparar Estudios</div>
+    <form method="get">
+        <div class="compare-step">
+            <label class="compare-label">1. Selecciona un paciente</label>
+            <select name="patient_id" class="compare-select" required>
+                <option value="">-- Selecciona --</option>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}">{{ patient.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="compare-step">
+            <label class="compare-label">2. Selecciona la imagen actual</label>
+            <div class="image-placeholder">[Imagen actual aquí]</div>
+        </div>
+        <div class="compare-step">
+            <label class="compare-label">3. Selecciona estudios previos</label>
+            <div class="image-placeholder">[Estudios previos aquí]</div>
+        </div>
+        <div class="compare-step">
+            <label class="compare-label">4. Vista comparativa</label>
+            <div class="compare-images">
+                <div class="image-placeholder">[Imagen actual]</div>
+                <div class="image-placeholder">[Imagen previa]</div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" disabled>Comparar (demo)</button>
+    </form>
+    <div class="compare-message">
+        * Esta es una vista simulada. Cuando se agreguen imágenes reales, se mostrarán aquí para comparar.
+    </div>
+</div>
+{% endblock %}

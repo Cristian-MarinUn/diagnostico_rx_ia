@@ -1,3 +1,27 @@
+from django.contrib.auth.decorators import login_required
+# ================================
+# CU-017: COMPARAR ESTUDIOS
+# ================================
+from django.views.decorators.http import require_http_methods
+
+@login_required
+@require_http_methods(["GET"])
+def compare_studies_view(request):
+    """
+    Vista inicial para comparar estudios (CU-017).
+    Simula la selección de paciente, imagen actual y estudios previos.
+    """
+    # Simulación: lista de pacientes y estudios previos
+    # En el futuro, conectar con modelos reales
+    fake_patients = [
+        {"id": 1, "name": "Juan Pérez", "has_previous": True},
+        {"id": 2, "name": "Ana Gómez", "has_previous": False},
+    ]
+    context = {
+        "patients": fake_patients,
+        "page": "compare_studies"
+    }
+    return render(request, "users/compare_studies.html", context)
 # ================================
 # ARCHIVO: users/views.py
 # ================================
