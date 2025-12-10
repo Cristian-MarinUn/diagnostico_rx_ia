@@ -1,0 +1,92 @@
+@startuml
+actor "Médico Radiólogo" as medico
+participant "Interfaz\nComparación" as interfaz
+participant "Controlador\nComparación" as controlador
+participant "Base de Datos\nPacientes" as bd_pac
+participant "Base de Datos\nDiagnósticos" as bd_diag
+participant "Repositorio\nImágenes" as repo_img
+
+== Selección de Paciente ==
+medico -> interfaz : Selecciona al paciente
+activate interfaz
+interfaz -> controlador : cargarPaciente(idPaciente)
+activate controlador
+controlador -> bd_pac : obtenerDatosPaciente(idPaciente)
+activate bd_pac
+bd_pac --> controlador : datosPaciente
+deactivate bd_pac
+controlador --> interfaz : pacienteCargado
+deactivate controlador
+interfaz --> medico : Muestra información del paciente
+deactivate interfaz
+
+== Selección de Imagen Actual ==
+medico -> interfaz : Escoge la imagen actual a comparar
+activate interfaz
+interfaz -> controlador : seleccionarImagenActual(idImagen)
+activate controlador
+controlador -> repo_img : obtenerImagen(idImagen)
+activate repo_img
+repo_img --> controlador : imagenActual
+deactivate repo_img
+
+== Búsqueda de Estudios Anteriores ==
+controlador -> bd_diag : buscarEstudiosAnteriores(idPaciente, tipoEstudio)
+activate bd_diag
+
+alt Existen estudios anteriores del mismo tipo
+    bd_diag --> controlador : listaEstudiosAnteriores
+    deactivate bd_diag
+    controlador --> interfaz : mostrarSugerenciasEstudios(lista)
+    deactivate controlador
+    interfaz --> medico : Sistema sugiere estudios anteriores del mismo tipo
+    deactivate interfaz
+    
+    == Selección de Imágenes Previas ==
+    medico -> interfaz : Selecciona una o más imágenes previas
+    activate interfaz
+    interfaz -> controlador : seleccionarImagenesPrevias(listaIDs)
+    activate controlador
+    
+    ' Recuperar imágenes seleccionadas
+    loop Para cada imagen previa
+        controlador -> repo_img : obtenerImagen(idImagenPrevia)
+        activate repo_img
+        repo_img --> controlador : imagenPrevia
+        deactivate repo_img
+    end
+    
+    == Generación de Vista Comparativa ==
+    alt Carga exitosa de imágenes
+        controlador -> controlador : generarVistaComparativa(imagenActual, imagenesPrevias)
+        controlador --> interfaz : mostrarComparacion(vistaComparativa)
+        deactivate controlador
+        interfaz --> medico : Muestra vista comparativa lado a lado o con superposición
+        deactivate interfaz
+        
+        note right of medico
+            Vista permite:
+            - Comparación lado a lado
+            - Superposición de imágenes
+            - Zoom sincronizado
+            - Anotaciones
+        end note
+        
+    else Error al cargar imágenes (A2)
+        repo_img --> controlador : errorCarga
+        controlador --> interfaz : errorAlCargarImagenes()
+        deactivate controlador
+        interfaz --> medico : "No fue posible cargar las\nimágenes seleccionadas"
+        deactivate interfaz
+    end
+    
+else No hay imágenes previas (A1)
+    bd_diag --> controlador : sinEstudiosAnteriores
+    deactivate bd_diag
+    controlador --> interfaz : sinImagenesPrevias()
+    deactivate controlador
+    interfaz --> medico : "No existen estudios anteriores\npara comparar"
+    deactivate interfaz
+end
+
+@enduml

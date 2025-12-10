@@ -235,7 +235,7 @@
                     <button class="btn btn-primary" style="width: 100%;" onclick="validateDiagnosis({{ diagnosis.id }})">
                         ✓ Validar Diagnóstico
                     </button>
-                    <button class="btn btn-outline" style="width: 100%;">
+                    <button class="btn btn-outline" style="width: 100%;" onclick="exportDiagnosisPDF({{ diagnosis.id }})">
                         📥 Exportar PDF
                     </button>
                     <button class="btn btn-secondary" style="width: 100%;" onclick="discardDiagnosis({{ diagnosis.id }})">
@@ -284,7 +284,14 @@
     {% endif %}
 </div>
 
+
 <script src="{% static 'diagnostico/js/diagnosis_detail.js' %}"></script>
+<script>
+    // Refuerzo: definir la función en el scope global
+    window.exportDiagnosisPDF = function(diagnosisId) {
+        window.open(`/diagnostico/export-pdf/${diagnosisId}/`, '_blank');
+    };
+</script>
 
 {% if diagnosis.status == 'PENDING' or diagnosis.status == 'PROCESSING' %}
 <script>

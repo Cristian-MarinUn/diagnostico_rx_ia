@@ -1,3 +1,84 @@
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+# Exportar PDF (CU-019)
+@login_required
+def export_diagnosis_pdf(request, diagnosis_id):
+    diagnosis = get_object_or_404(AIDiagnosis, id=diagnosis_id)
+    # Permisos: solo quien solicitó, validó, admin o superuser
+    if not (request.user == diagnosis.requested_by or 
+            request.user == diagnosis.validated_by or 
+            request.user.is_superuser or
+            request.user.rol == 'ADMINISTRADOR'):
+        return HttpResponse('No tienes acceso a este diagnóstico.', status=403)
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+
+    # Encabezado
+    p.setFont("Helvetica-Bold", 18)
+    p.drawString(50, y, f"Diagnóstico IA #{diagnosis.id}")
+    y -= 30
+    p.setFont("Helvetica", 12)
+    p.drawString(50, y, f"Paciente: {diagnosis.patient.get_full_name()} ({diagnosis.patient.identification})")
+    y -= 20
+    p.drawString(50, y, f"Solicitado por: {diagnosis.requested_by.get_full_name()}")
+    y -= 20
+    p.drawString(50, y, f"Fecha: {diagnosis.created_at.strftime('%d/%m/%Y %H:%M')}")
+    y -= 30
+
+    # Resultado
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, "Resultado del Diagnóstico:")
+    y -= 20
+    p.setFont("Helvetica", 12)
+    text = diagnosis.diagnosis_result or "Sin resultado"
+    for line in text.splitlines():
+        p.drawString(60, y, line)
+        y -= 15
+    y -= 20
+
+    # Observaciones IA
+    if diagnosis.ai_observations:
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(50, y, "Observaciones de la IA:")
+        y -= 20
+        p.setFont("Helvetica", 12)
+        for obs in diagnosis.ai_observations:
+            p.drawString(60, y, f"- {obs}")
+            y -= 15
+        y -= 10
+
+    # Confianza
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, y, f"Nivel de confianza: {diagnosis.confidence_level or '-'}%")
+    y -= 20
+
+    # Comentarios del médico
+    if diagnosis.doctor_comments:
+        p.setFont("Helvetica-Bold", 14)
+        p.drawString(50, y, "Comentarios del Médico:")
+        y -= 20
+        p.setFont("Helvetica", 12)
+        for line in diagnosis.doctor_comments.splitlines():
+            p.drawString(60, y, line)
+            y -= 15
+        y -= 10
+
+    # Pie de página
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(50, 40, "Generado automáticamente por Diagnóstico IA - CU-019")
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename=diagnostico_{diagnosis.id}.pdf'
+    return response
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -57,28 +138,17 @@ def request_diagnosis(request, patient_id):
     # Verificar permiso: solo médicos y técnicos pueden solicitar
     if request.user.rol not in ['MEDICO_RADIOLOGO', 'TECNICO_SALUD']:
         messages.error(request, 'No tienes permiso para solicitar diagnósticos.')
-        return redirect('users:user_dashboard')
-    
-    if request.method == 'POST':
-        # Obtener imágenes seleccionadas
-        selected_images = request.POST.getlist('images')
-        
-        if not selected_images:
-            messages.error(request, 'Debes seleccionar al menos una imagen para solicitar un diagnóstico.')
-            return redirect('diagnostico:request_diagnosis', patient_id=patient_id)
-        
-        # Crear diagnosis
+    if request.method == "POST":
+        selected_images = request.POST.getlist('selected_images')
         diagnosis = AIDiagnosis.objects.create(
             patient=patient,
             requested_by=request.user,
             status='PENDING',
             model_version='1.0.0'  # Versión de ejemplo
         )
-        
         # Agregar imágenes
         images = MedicalImage.objects.filter(id__in=selected_images, patient=patient)
         diagnosis.images.set(images)
-        
         # Crear log de auditoría
         DiagnosisLog.objects.create(
             diagnosis=diagnosis,
@@ -87,7 +157,6 @@ def request_diagnosis(request, patient_id):
             ip_address=get_client_ip(request),
             user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
-        
         messages.success(request, 'Diagnóstico solicitado exitosamente. Se está procesando...')
         return redirect('diagnostico:diagnosis_detail', diagnosis_id=diagnosis.id)
     
