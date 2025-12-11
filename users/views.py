@@ -1,3 +1,61 @@
+from django.views.decorators.http import require_http_methods
+
+# CU-020: Reportes Estadísticos
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def reports_view(request):
+    """
+    Vista para CU-020: Generar Reportes Estadísticos
+    Permite seleccionar tipo de reporte, muestra datos en tabla y exporta a PDF/Excel.
+    """
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a los reportes.")
+        return redirect("users:admin_dashboard")
+
+    report_type = request.GET.get("report_type", "precision")
+    no_data = False
+    report_data = []
+
+    # Simulación de datos históricos
+    if report_type == "precision":
+        report_data = [
+            {"fecha": "2025-12-09", "precision": 96.8},
+            {"fecha": "2025-12-10", "precision": 97.1},
+        ]
+    elif report_type == "diagnosticos":
+        report_data = [
+            {"fecha": "2025-12-09", "cantidad": 87},
+            {"fecha": "2025-12-10", "cantidad": 92},
+        ]
+    elif report_type == "uso":
+        report_data = [
+            {"modulo": "Diagnóstico", "uso": 120},
+            {"modulo": "Imágenes", "uso": 98},
+            {"modulo": "Usuarios", "uso": 45},
+        ]
+
+    # Alternativa: no hay datos
+    if not report_data:
+        no_data = True
+
+    # Exportar a PDF/Excel (simulado)
+    if request.method == "POST":
+        export_type = request.POST.get("export")
+        if export_type == "pdf":
+            messages.success(request, "Reporte exportado a PDF (simulado).")
+        elif export_type == "excel":
+            messages.success(request, "Reporte exportado a Excel (simulado).")
+
+    context = {
+        "report_type": report_type,
+        "report_data": report_data,
+        "no_data": no_data,
+    }
+    return render(request, "users/reports.html", context)
 # ================================
 # CU-023: MONITOREO DE ACTIVIDAD DEL SISTEMA
 # ================================
@@ -20,6 +78,7 @@ def monitoring_view(request):
         {'usuario': 'tecnico1', 'fecha': '10/12/2025 18:05', 'tipo': 'operacion', 'descripcion': 'Carga de imagen RX'},
         {'usuario': 'admin', 'fecha': '10/12/2025 18:10', 'tipo': 'operacion', 'descripcion': 'Exportación de registros'},
     ]
+
 
     # Filtrado básico
     if usuario:
@@ -88,7 +147,7 @@ from .models import Patient, Notification
 # CU-024: NOTIFICACIONES DE ESTADO DE IMÁGENES
 # ================================
 
-from django.urls import reverse
+
 
 @login_required
 def notifications_view(request):

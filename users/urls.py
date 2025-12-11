@@ -34,4 +34,6 @@ urlpatterns = [
     # CU-006: Autenticación de Dos Factores
     path('2fa/verify/', Verify2FAView.as_view(), name='2fa-verify'),
 
+    # CU-020: Reportes Estadísticos
+    path('reports/', views.reports_view, name='reports'),
 ]
