@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Detalle de Notificación</h2>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">{{ notification.get_status_display }}</h5>
+        <p class="card-text">{{ notification.message }}</p>
+        <p class="card-text"><small class="text-muted">Fecha: {{ notification.created_at|date:'d/m/Y H:i' }}</small></p>
+        {% if not notification.is_read %}
+            <a href="{% url 'users:mark_notification_read' notification.id %}" class="btn btn-success">Marcar como leída</a>
+        {% endif %}
+        <a href="{% url 'users:notifications' %}" class="btn btn-secondary">Volver a notificaciones</a>
+    </div>
+</div>
+{% endblock %}

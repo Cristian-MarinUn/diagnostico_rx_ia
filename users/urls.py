@@ -4,6 +4,10 @@ from .views import Verify2FAView
 app_name = 'users'
 
 urlpatterns = [
+    # CU-024: Notificaciones de Estado
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/<int:notification_id>/detail/', views.notification_detail, name='notification_detail'),
     # CU-017: Comparar Estudios
     path('compare-studies/', views.compare_studies_view, name='compare_studies'),
     path('profile/', views.profile_view, name='profile'),

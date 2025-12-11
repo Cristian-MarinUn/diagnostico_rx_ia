@@ -1,4 +1,29 @@
 from django.db import models
+class Notification(models.Model):
+    STATUS_CHOICES = [
+        ('analisis', 'En análisis'),
+        ('completada', 'Completada'),
+        ('error', 'Error'),
+    ]
+    user = models.ForeignKey(
+        'authentication.User',
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        verbose_name='Técnico de Salud'
+    )
+    message = models.CharField(max_length=255, verbose_name='Mensaje')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, verbose_name='Estado')
+    is_read = models.BooleanField(default=False, verbose_name='Leída')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Creación')
+
+    class Meta:
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user} - {self.get_status_display()} - {'Leída' if self.is_read else 'No leída'}"
+from django.db import models
 from django.utils import timezone
 import re
 

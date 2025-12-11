@@ -43,7 +43,42 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.middleware.csrf import get_token
-from .models import Patient
+from .models import Patient, Notification
+# ================================
+# CU-024: NOTIFICACIONES DE ESTADO DE IMÁGENES
+# ================================
+
+from django.urls import reverse
+
+@login_required
+def notifications_view(request):
+    """
+    Vista para mostrar notificaciones de estado de imágenes al técnico de salud.
+    """
+    user = request.user
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')
+    context = {
+        'notifications': notifications,
+    }
+    return render(request, 'users/notifications.html', context)
+
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = Notification.objects.filter(id=notification_id, user=request.user).first()
+    if notification and not notification.is_read:
+        notification.is_read = True
+        notification.save()
+    return redirect('users:notifications')
+
+@login_required
+def notification_detail(request, notification_id):
+    notification = Notification.objects.filter(id=notification_id, user=request.user).first()
+    if not notification:
+        return redirect('users:notifications')
+    context = {
+        'notification': notification,
+    }
+    return render(request, 'users/notification_detail.html', context)
 from diagnostico.models import AIDiagnosis
 from .forms import PatientRegistrationForm
 
