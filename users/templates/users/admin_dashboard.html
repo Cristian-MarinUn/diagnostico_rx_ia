@@ -152,6 +152,7 @@
                     </p>
                 </a>
 
+
                 <a href="#" class="action-card">
                     <div class="action-icon">
                         <span>🔐</span>
@@ -172,7 +173,7 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{% url 'users:monitoring' %}" class="action-card">
                     <div class="action-icon">
                         <span>🔍</span>
                     </div>
@@ -182,15 +183,6 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
-                    <div class="action-icon">
-                        <span>⚙️</span>
-                    </div>
-                    <h3 class="action-title">Configuración</h3>
-                    <p class="action-description">
-                        Ajustar parámetros y configuración general del sistema
-                    </p>
-                </a>
 
                 <a href="{% url 'users:notifications' %}" class="action-card">
                     <div class="action-icon">
@@ -202,19 +194,8 @@
                     </p>
                 </a>
             </div>
-        </section>
 
-        <!-- Users Management Table -->
-        <section class="recent-activity-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <span class="section-title-icon">👥</span>
-                    <span>Usuarios Recientes</span>
-                </h2>
-                <a href="{% url 'users:user_list' %}" class="section-link">
-                    <span>Ver todos los usuarios</span>
-                    <span>→</span>
-                </a>
+            <!-- Botón 'Configuración' y 'Ver todos los usuarios' eliminados según solicitud -->
             </div>
 
             <div class="users-table-container">

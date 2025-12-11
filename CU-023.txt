@@ -1,0 +1,143 @@
+@startuml
+actor "Administrador" as admin
+participant "Interfaz\nMonitoreo" as interfaz
+participant "Controlador\nMonitoreo" as controlador
+participant "Base de Datos\nAuditoría" as bd_audit
+participant "Base de Datos\nUsuarios" as bd_users
+participant "Generador\nReportes" as generador
+
+== Acceso al Módulo ==
+admin -> interfaz : Ingresa al módulo "Monitoreo del Sistema"
+activate interfaz
+interfaz -> controlador : verificarAccesoAdmin(idUsuario)
+activate controlador
+controlador -> bd_users : verificarRolAdministrador(idUsuario)
+activate bd_users
+bd_users --> controlador : rolVerificado
+deactivate bd_users
+controlador --> interfaz : accesoPermitido
+deactivate controlador
+
+== Verificación de Logs ==
+interfaz -> controlador : verificarLogsDisponibles()
+activate controlador
+controlador -> bd_audit : verificarRegistrosActividad()
+activate bd_audit
+
+alt Existen registros disponibles
+    bd_audit --> controlador : registrosDisponibles
+    deactivate bd_audit
+    controlador --> interfaz : logsExisten
+    deactivate controlador
+    
+    == Visualización de Actividad Reciente ==
+    interfaz -> controlador : obtenerActividadReciente()
+    activate controlador
+    controlador -> bd_audit : consultarLogsRecientes(limite=50)
+    activate bd_audit
+    bd_audit --> controlador : listaLogs(usuario, accion, fecha, resultado)
+    deactivate bd_audit
+    controlador --> interfaz : mostrarLogsRecientes()
+    deactivate controlador
+    interfaz --> admin : Muestra logs de acceso y operaciones recientes
+    deactivate interfaz
+    
+    note right of admin
+        Información mostrada:
+        - Usuario que realizó la acción
+        - Tipo de evento
+        - Fecha y hora
+        - Resultado (éxito/error)
+        - Dirección IP (si aplica)
+    end note
+    
+    == Aplicación de Filtros ==
+    admin -> interfaz : Aplica filtros (usuario, fecha, tipo de evento)
+    activate interfaz
+    interfaz -> controlador : filtrarLogs(criteriosFiltrado)
+    activate controlador
+    
+    controlador -> controlador : validarCriteriosFiltro()
+    
+    controlador -> bd_audit : consultarLogsFiltrados(usuario, fechaInicio, fechaFin, tipoEvento)
+    activate bd_audit
+    bd_audit --> controlador : logsFilterados
+    deactivate bd_audit
+    
+    controlador -> bd_users : obtenerDatosUsuarios(listaIDs)
+    activate bd_users
+    bd_users --> controlador : informacionUsuarios
+    deactivate bd_users
+    
+    controlador --> interfaz : mostrarResultadosFiltrados()
+    deactivate controlador
+    interfaz --> admin : Muestra logs filtrados con detalles
+    deactivate interfaz
+    
+    == Análisis de Eventos ==
+    admin -> interfaz : Selecciona un evento para ver detalles
+    activate interfaz
+    interfaz -> controlador : obtenerDetallesEvento(idEvento)
+    activate controlador
+    controlador -> bd_audit : consultarEventoCompleto(idEvento)
+    activate bd_audit
+    bd_audit --> controlador : detallesEvento(accion, parametros, resultado, stackTrace)
+    deactivate bd_audit
+    controlador --> interfaz : mostrarDetallesCompletos()
+    deactivate controlador
+    interfaz --> admin : Muestra información detallada del evento
+    deactivate interfaz
+    
+    note right of interfaz
+        Detalles incluyen:
+        - Descripción completa de la acción
+        - Parámetros utilizados
+        - Resultado de la operación
+        - Errores (si los hubo)
+        - Tiempo de ejecución
+    end note
+    
+    == Exportación de Logs ==
+    admin -> interfaz : Solicita exportar registros
+    activate interfaz
+    interfaz -> controlador : exportarLogs(formato, filtros)
+    activate controlador
+    
+    controlador -> bd_audit : obtenerLogsParaExportar(filtros)
+    activate bd_audit
+    bd_audit --> controlador : datosLogs
+    deactivate bd_audit
+    
+    controlador -> generador : generarArchivoExportacion(formato, datos)
+    activate generador
+    
+    alt Formato CSV
+        generador -> generador : generarCSV()
+        generador --> controlador : archivoCSV
+        
+    else Formato Excel
+        generador -> generador : generarExcel()
+        generador --> controlador : archivoExcel
+    end
+    deactivate generador
+    
+    controlador -> bd_audit : registrarExportacion(idAdmin, timestamp)
+    activate bd_audit
+    bd_audit --> controlador : registroOK
+    deactivate bd_audit
+    
+    controlador --> interfaz : archivoListo(archivo)
+    deactivate controlador
+    interfaz --> admin : Permite descargar archivo exportado
+    deactivate interfaz
+    
+ else No hay registros disponibles (A1)
+    bd_audit --> controlador : sinRegistros
+    deactivate bd_audit
+    controlador --> interfaz : noHayLogs()
+    deactivate controlador
+    interfaz --> admin : "No se encontraron registros recientes"
+    deactivate interfaz
+ end
+
+@enduml

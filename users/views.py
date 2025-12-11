@@ -1,3 +1,43 @@
+# ================================
+# CU-023: MONITOREO DE ACTIVIDAD DEL SISTEMA
+# ================================
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def monitoring_view(request):
+    """
+    Vista para mostrar logs de actividad y uso del sistema al administrador.
+    Permite filtrar por usuario, fecha y tipo de evento. Simula exportación.
+    """
+    usuario = request.GET.get('usuario', '').strip()
+    fecha = request.GET.get('fecha', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+    export = request.GET.get('export', '')
+
+    # Simulación de logs
+    logs = [
+        {'usuario': 'admin', 'fecha': '10/12/2025 18:00', 'tipo': 'login', 'descripcion': 'Acceso al sistema'},
+        {'usuario': 'tecnico1', 'fecha': '10/12/2025 18:05', 'tipo': 'operacion', 'descripcion': 'Carga de imagen RX'},
+        {'usuario': 'admin', 'fecha': '10/12/2025 18:10', 'tipo': 'operacion', 'descripcion': 'Exportación de registros'},
+    ]
+
+    # Filtrado básico
+    if usuario:
+        logs = [log for log in logs if usuario.lower() in log['usuario'].lower()]
+    if fecha:
+        logs = [log for log in logs if fecha in log['fecha']]
+    if tipo:
+        logs = [log for log in logs if tipo == log['tipo']]
+
+    # Simulación de exportación
+    if export:
+        # Aquí se podría generar un archivo CSV real
+        messages.success(request, 'Registros exportados correctamente (simulado).')
+
+    context = {
+        'logs': logs,
+    }
+    return render(request, 'users/monitoring.html', context)
 from django.contrib.auth.decorators import login_required
 # ================================
 # CU-017: COMPARAR ESTUDIOS
