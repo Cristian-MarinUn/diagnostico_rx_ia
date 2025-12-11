@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Permisos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="welcome-text">
+                <h1>Gestión de Permisos 🔐</h1>
+                <p>Define qué acciones o módulos puede usar cada rol.</p>
+            </div>
+        </div>
+        <div class="permissions-content">
+            <p>Aquí podrás gestionar los permisos de acceso por rol. (Interfaz en desarrollo)</p>
+        </div>
+        <a href="{% url 'users:admin_dashboard' %}" class="btn btn-secondary" style="margin-top: 2rem;">← Volver al Panel de Administración</a>
+    </div>
+</div>
+{% endblock %}

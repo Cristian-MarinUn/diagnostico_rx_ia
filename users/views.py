@@ -1,3 +1,14 @@
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+@login_required
+@user_passes_test(lambda u: u.rol == 'ADMINISTRADOR')
+def manage_permissions_view(request):
+    """
+    Vista para gestionar los permisos de acceso por rol.
+    """
+    # Aquí se listarán los roles y sus permisos (lógica a implementar)
+    return render(request, "users/manage_permissions.html", {})
 from django.views.decorators.http import require_http_methods
 
 # CU-020: Reportes Estadísticos
