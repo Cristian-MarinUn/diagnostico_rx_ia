@@ -1,14 +1,64 @@
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 
+
+
+from django.contrib.auth.models import Permission
+from authentication.models import User
+from django.db import models
+
+# Modelo intermedio para mapear permisos a roles personalizados
+class RolePermission(models.Model):
+    rol = models.CharField(max_length=20, choices=User.ROLES, unique=True)
+    permissions = models.ManyToManyField(Permission, blank=True)
+
+    def __str__(self):
+        return self.get_rol_display()
+
+
 @login_required
 @user_passes_test(lambda u: u.rol == 'ADMINISTRADOR')
 def manage_permissions_view(request):
     """
-    Vista para gestionar los permisos de acceso por rol.
+    Gestión de permisos por rol personalizado (campo 'rol' en User).
     """
-    # Aquí se listarán los roles y sus permisos (lógica a implementar)
-    return render(request, "users/manage_permissions.html", {})
+    message = None
+    # Listar los roles definidos en el modelo User
+    roles = [{'id': r[0], 'name': r[1]} for r in User.ROLES]
+    all_permissions = Permission.objects.all().order_by('name')
+    selected_role_id = request.POST.get('role') or request.GET.get('role')
+    current_permissions = []
+    permissions = None
+
+    selected_role = None
+    if selected_role_id:
+        selected_role = selected_role_id
+        # Obtener o crear el registro de permisos para ese rol
+        role_perm, _ = RolePermission.objects.get_or_create(rol=selected_role)
+        permissions = role_perm.permissions.all()
+        current_permissions = [perm.id for perm in permissions]
+
+    if request.method == 'POST' and selected_role:
+        # Guardar cambios de permisos
+        new_permissions_ids = request.POST.getlist('permissions')
+        new_permissions = Permission.objects.filter(id__in=new_permissions_ids)
+        role_perm, _ = RolePermission.objects.get_or_create(rol=selected_role)
+        role_perm.permissions.set(new_permissions)
+        role_perm.save()
+        message = f"Permisos actualizados para el rol '{dict(User.ROLES)[selected_role]}'."
+        # Refrescar permisos actuales
+        current_permissions = [perm.id for perm in role_perm.permissions.all()]
+        permissions = role_perm.permissions.all()
+
+    context = {
+        'roles': roles,
+        'all_permissions': all_permissions,
+        'selected_role_id': selected_role,
+        'current_permissions': current_permissions,
+        'permissions': permissions,
+        'message': message,
+    }
+    return render(request, "users/manage_permissions.html", context)
 from django.views.decorators.http import require_http_methods
 
 # CU-020: Reportes Estadísticos
