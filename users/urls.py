@@ -32,8 +32,7 @@ urlpatterns = [
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
     path('dashboard/admin/user/create/', views.user_create_view, name='user_create'),
     path('dashboard/admin/list/', views.user_list_view, name='user_list'),
-    path('dashboard/patient/create/', views.patient_create_view, name='patient_create'),
-    path('diagnosis/request/', views.request_diagnosis_ia_view, name='request_diagnosis_ia'),
+
 
     # CU-018: Búsqueda de Pacientes
     path('search-patient/', views.search_patient_view, name='search_patient'),
@@ -47,4 +46,10 @@ urlpatterns = [
     path('dashboard/admin/permissions/', views.manage_permissions_view, name='manage_permissions'),
     # CU-020: Reportes Estadísticos
     path('reports/', views.reports_view, name='reports'),
+
+    # CU-014: Crear Paciente
+    path('patient/create/', views.patient_create_view, name='patient_create'),
+
+    # CU-013: Diagnóstico Asistido por IA
+    path('diagnosis/request/', views.request_diagnosis_ia_view, name='request_diagnosis_ia'),
 ]

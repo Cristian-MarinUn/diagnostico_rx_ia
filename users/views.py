@@ -1279,3 +1279,83 @@ def get_system_activities():
     ]
     
     return activities
+
+# ================================
+# CU-018: BÚSQUEDA DE PACIENTES
+# ================================
+
+@login_required
+def search_patient_view(request):
+    """
+    Vista para buscar pacientes por nombre o ID de documento.
+    Implementa el CU-018: Búsqueda de Paciente
+    """
+    # Verificar que el usuario sea médico radiólogo
+    if request.user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permiso para acceder a esta sección.')
+        return redirect('users:user_dashboard')
+    
+    results = []
+    search_query = ''
+    error_message = ''
+    
+    if request.method == 'POST':
+        search_query = request.POST.get('search_query', '').strip()
+        
+        # Validar criterio de búsqueda
+        if not search_query or len(search_query) < 2:
+            error_message = 'Ingrese un criterio de búsqueda válido (mínimo 2 caracteres)'
+        else:
+            try:
+                # Buscar pacientes por nombre o documento
+                results = Patient.objects.filter(
+                    Q(first_name__icontains=search_query) |
+                    Q(last_name__icontains=search_query) |
+                    Q(identification__icontains=search_query),
+                    is_active=True
+                ).order_by('last_name', 'first_name')
+                
+                if not results.exists():
+                    error_message = 'No se encontraron coincidencias'
+                    
+            except Exception as e:
+                error_message = f'Error al realizar la búsqueda: {str(e)}'
+    
+    context = {
+        'results': results,
+        'search_query': search_query,
+        'error_message': error_message,
+    }
+    
+    return render(request, 'users/search_patient.html', context)
+
+
+@login_required
+def patient_detail_view(request, patient_id):
+    """
+    Vista para mostrar los detalles completos de un paciente.
+    Se accede después de seleccionar un paciente en la búsqueda.
+    """
+    # Verificar que el usuario sea médico radiólogo
+    if request.user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permiso para acceder a esta sección.')
+        return redirect('users:user_dashboard')
+    
+    try:
+        patient = Patient.objects.get(id=patient_id, is_active=True)
+        
+        # Obtener información relacionada del paciente
+        from diagnostico.models import AIDiagnosis
+        diagnoses = AIDiagnosis.objects.filter(patient=patient).order_by('-created_at')[:10]
+        
+        context = {
+            'patient': patient,
+            'diagnoses': diagnoses,
+            'age': patient.get_age(),
+        }
+        
+        return render(request, 'users/patient_detail.html', context)
+        
+    except Patient.DoesNotExist:
+        messages.error(request, 'El paciente no fue encontrado.')
+        return redirect('users:search_patient')

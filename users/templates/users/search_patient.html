@@ -4,6 +4,7 @@
 {% block title %}Buscar Paciente{% endblock %}
 
 {% block extra_css %}
+<<<<<<< Updated upstream
 <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
     
@@ -257,10 +258,16 @@
         border: 1px solid rgba(34, 197, 94, 0.3);
         color: #86efac;
     }
+=======
+<link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+>>>>>>> Stashed changes
 </style>
 {% endblock %}
 
 {% block content %}
+<<<<<<< Updated upstream
 <div class="search-wrapper">
     <div class="search-container">
         <div class="search-header">
@@ -336,12 +343,6 @@
                                 </div>
                             </div>
                             
-                            <div class="patient-actions">
-                                <a href="{% url 'users:patient_detail' patient.id %}" class="btn-view">
-                                    <span>👁️</span>
-                                    <span>Ver Detalles</span>
-                                </a>
-                            </div>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -359,6 +360,67 @@
                 <p style="color: #64748b;">Puedes buscar por nombre o número de documento</p>
             </div>
         {% endif %}
+=======
+<div class="search-patient-wrapper">
+    <div class="search-patient-container">
+        
+        <!-- Header -->
+        <div class="search-header">
+            <div class="header-content">
+                <h1 class="header-title">
+                    <span class="header-icon">🔎</span>
+                    <span>Buscar Paciente</span>
+                </h1>
+                <p class="header-description">
+                    Busca pacientes por nombre o número de documento
+                </p>
+            </div>
+            <a href="{% url 'users:user_dashboard' %}" class="btn-back">
+                <span>←</span>
+                <span>Volver al Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form-container">
+            <form method="POST" class="search-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="search_query" class="form-label">
+                        <span class="label-text">Criterio de Búsqueda</span>
+                        <span class="label-hint">(nombre o ID)</span>
+                    </label>
+                    <div class="search-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="search_query"
+                            name="search_query"
+                            class="search-input"
+                            placeholder="Ej: Juan García o 123456789"
+                            value="{{ search_query }}"
+                            minlength="2"
+                            required
+                        >
+                        <button type="submit" class="search-button">
+                            <span>🔍</span>
+                            <span>Buscar</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Error Message -->
+        {% if error_message %}
+        <div class="alert alert-error">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <p class="alert-title">{{ error_message }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+
     </div>
 </div>
 {% endblock %}

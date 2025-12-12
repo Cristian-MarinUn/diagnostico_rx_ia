@@ -1,42 +1,14 @@
 {% extends 'core/base.html' %}
 {% load static %}
 
-{% block title %}Detalles del Paciente - {{ patient.get_full_name }}{% endblock %}
+{% block title %}Buscar Paciente{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
 <style>
     body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-    
-    .detail-wrapper { padding: 2rem 1rem; }
-    .detail-container { max-width: 900px; margin: 0 auto; }
-    
-    .detail-header {
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .detail-header h1 {
-        color: #e2e8f0;
-        font-size: 1.75rem;
-        display: flex;
-        gap: 0.6rem;
-        align-items: center;
-        margin: 0;
-    }
-    
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.875rem 1.25rem;
-        background: rgba(100, 116, 139, 0.2);
-        border: 1px solid rgba(100, 116, 139, 0.4);
-        border-radius: 8px;
-        color: #94a3b8;
-        font-weight: 600;
-        cursor: pointer;
+</style>
+{% endblock %}
         transition: all 0.3s ease;
         text-decoration: none;
     }
@@ -47,80 +19,54 @@
         border-color: rgba(100, 116, 139, 0.6);
     }
     
-    .detail-card {
+    .search-card {
         background: rgba(255,255,255,0.03);
         border: 1px solid rgba(255,255,255,0.06);
-        padding: 2rem;
+        padding: 1.5rem;
         border-radius: 8px;
         margin-bottom: 2rem;
     }
     
-    .detail-section {
-        margin-bottom: 2rem;
-    }
-    
-    .detail-section:last-child {
-        margin-bottom: 0;
-    }
-    
-    .detail-section-title {
-        color: #e2e8f0;
-        font-weight: 700;
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .detail-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .detail-item {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .detail-label {
-        color: #94a3b8;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .detail-value {
-        color: #e2e8f0;
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    
-    .detail-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0.875rem;
-        background: rgba(34, 197, 94, 0.1);
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        border-radius: 6px;
-        color: #86efac;
-        font-weight: 600;
-        font-size: 0.9rem;
-        width: fit-content;
-    }
-    
-    .action-buttons {
+    .search-form {
         display: flex;
         gap: 1rem;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        align-items: flex-end;
     }
     
-    .btn-primary {
+    .search-form-group {
+        flex: 1;
+    }
+    
+    .search-form label {
+        color: #cbd5e1;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: rgba(15, 23, 42, 0.6);
+        border: 2px solid rgba(100, 116, 139, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        background: rgba(15, 23, 42, 0.8);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .search-input::placeholder {
+        color: #64748b;
+    }
+    
+    .search-button {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -136,158 +82,342 @@
         text-decoration: none;
     }
     
-    .btn-primary:hover {
+    .search-button:hover {
         background: linear-gradient(135deg, #1e40af, #1e3a8a);
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
     
-    .btn-primary:active {
+    .search-button:active {
         transform: translateY(0);
     }
     
-    .btn-secondary {
+    .results-section {
+        margin-top: 2rem;
+    }
+    
+    .results-header {
+        color: #e2e8f0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .patient-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .patient-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .patient-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .patient-name {
+        color: #e2e8f0;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .patient-id {
+        color: #3b82f6;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .patient-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        color: #cbd5e1;
+        font-size: 0.95rem;
+    }
+    
+    .patient-info-item {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .patient-info-label {
+        color: #94a3b8;
+        font-weight: 600;
+    }
+    
+    .patient-info-value {
+        color: #e2e8f0;
+    }
+    
+    .patient-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-view {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.875rem 1.5rem;
-        background: rgba(100, 116, 139, 0.2);
-        border: 1px solid rgba(100, 116, 139, 0.4);
-        border-radius: 8px;
-        color: #94a3b8;
+        padding: 0.625rem 1rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        border-radius: 6px;
+        color: #ffffff;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: all 0.3s ease;
         text-decoration: none;
     }
     
-    .btn-secondary:hover {
-        background: rgba(100, 116, 139, 0.3);
-        color: #cbd5e1;
-        border-color: rgba(100, 116, 139, 0.6);
+    .btn-view:hover {
+        background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
     
-    .info-box {
-        background: rgba(34, 197, 94, 0.1);
-        border-left: 4px solid rgba(34, 197, 94, 0.5);
-        padding: 1rem;
-        border-radius: 6px;
-        color: #86efac;
-        margin-top: 1rem;
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #94a3b8;
     }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-text {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .message.info {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #93c5fd;
+    }
+    
+    .message.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+    }
+    
+    .message.success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #86efac;
+    }
+=======
+<link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+>>>>>>> Stashed changes
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="detail-wrapper">
-    <div class="detail-container">
-        <div class="detail-header">
-            <h1>
+<div class="patient-profile-wrapper">
+    <div class="patient-profile-container">
+        <div class="profile-header">
+            <a href="{% url 'users:search_patient' %}" class="btn-back">
+                <span>←</span>
+                <span>Volver a Buscar Paciente</span>
+            </a>
+            <h1 class="profile-title">
                 <span>👤</span>
-                <span>{{ patient.get_full_name }}</span>
+                <span>Perfil del Paciente</span>
             </h1>
-            <a href="{% url 'users:search_patient' %}" class="btn-back">← Volver a Búsqueda</a>
         </div>
-
-        <!-- Información Principal -->
-        <div class="detail-card">
-            <div class="detail-section">
-                <div class="detail-section-title">Información Personal</div>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Nombre Completo</span>
-                        <span class="detail-value">{{ patient.get_full_name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Número de Documento</span>
-                        <span class="detail-value">{{ patient.identification }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Fecha de Nacimiento</span>
-                        <span class="detail-value">{{ patient.date_of_birth|date:"d \d\e F \d\e Y" }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Género</span>
-                        <span class="detail-value">
-                            {% if patient.gender == 'M' %}
-                                Masculino
-                            {% elif patient.gender == 'F' %}
-                                Femenino
-                            {% else %}
-                                Otro
-                            {% endif %}
-                        </span>
-                    </div>
+        <div class="profile-card">
+            <div class="profile-info">
+                <div class="profile-row">
+                    <span class="profile-label">Nombre completo:</span>
+                    <span class="profile-value">{{ patient.get_full_name }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Identificación:</span>
+                    <span class="profile-value">{{ patient.identification }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Fecha de nacimiento:</span>
+                    <span class="profile-value">{{ patient.date_of_birth|date:"d/m/Y" }}{% if age %} ({{ age }} años){% endif %}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Género:</span>
+                    <span class="profile-value">{{ patient.get_gender_display }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Correo:</span>
+                    <span class="profile-value">{{ patient.email }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Teléfono:</span>
+                    <span class="profile-value">{{ patient.phone }}</span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Registrado:</span>
+                    <span class="profile-value">{{ patient.created_at|date:"d/m/Y H:i" }}</span>
                 </div>
             </div>
-
-            <!-- Información de Contacto -->
-            <div class="detail-section">
-                <div class="detail-section-title">Información de Contacto</div>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value">{{ patient.email }}</span>
+        </div>
+        <!-- Aquí puedes agregar más secciones como historial de diagnósticos, etc. -->
+    </div>
+</div>
+{% endblock %}
+                                    <span class="patient-info-label">Teléfono:</span>
+                                    <span class="patient-info-value">{{ patient.phone }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="patient-actions">
+                                <a href="{% url 'users:patient_detail' patient.id %}" class="btn-view">
+                                    <span>👁️</span>
+                                    <span>Ver Detalles</span>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚫</div>
+                        <div class="empty-state-text">No se encontraron pacientes</div>
+                        <p style="color: #64748b;">Intenta con otro criterio de búsqueda</p>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Teléfono</span>
-                        <span class="detail-value">{{ patient.phone }}</span>
+                {% block content %}
+                <div class="patient-profile-wrapper">
+                    <div class="patient-profile-container">
+                        <div class="profile-header">
+                            <a href="{% url 'users:search_patient' %}" class="btn-back">
+                                <span>←</span>
+                                <span>Volver a Buscar Paciente</span>
+                            </a>
+                            <h1 class="profile-title">
+                                <span>👤</span>
+                                <span>Perfil del Paciente</span>
+                            </h1>
+                        </div>
+                        <div class="profile-card">
+                            <div class="profile-info">
+                                <div class="profile-row">
+                                    <span class="profile-label">Nombre completo:</span>
+                                    <span class="profile-value">{{ patient.get_full_name }}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Identificación:</span>
+                                    <span class="profile-value">{{ patient.identification }}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Fecha de nacimiento:</span>
+                                    <span class="profile-value">{{ patient.date_of_birth|date:"d/m/Y" }}{% if age %} ({{ age }} años){% endif %}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Género:</span>
+                                    <span class="profile-value">{{ patient.get_gender_display }}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Correo:</span>
+                                    <span class="profile-value">{{ patient.email }}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Teléfono:</span>
+                                    <span class="profile-value">{{ patient.phone }}</span>
+                                </div>
+                                <div class="profile-row">
+                                    <span class="profile-label">Registrado:</span>
+                                    <span class="profile-value">{{ patient.created_at|date:"d/m/Y H:i" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Aquí puedes agregar más secciones como historial de diagnósticos, etc. -->
                     </div>
                 </div>
-            </div>
+                {% endblock %}
+                    <div class="result-card-body">
+                        <div class="patient-detail">
+                            <span class="detail-label">📅 Fecha de Nacimiento:</span>
+                            <span class="detail-value">{{ patient.date_of_birth|date:"d/m/Y" }} ({{ patient.get_age }} años)</span>
+                        </div>
 
-            <!-- Estado -->
-            <div class="detail-section">
-                <div class="detail-section-title">Estado</div>
-                <div class="detail-item">
-                    <span class="detail-label">Estatus del Paciente</span>
-                    <div style="margin-top: 0.5rem;">
-                        {% if patient.is_active %}
-                            <span class="detail-status">
-                                <span>✓</span>
-                                <span>Activo</span>
-                            </span>
-                        {% else %}
-                            <span class="detail-status" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
-                                <span>✕</span>
-                                <span>Inactivo</span>
-                            </span>
+                        {% if patient.email %}
+                        <div class="patient-detail">
+                            <span class="detail-label">📧 Correo:</span>
+                            <span class="detail-value">{{ patient.email }}</span>
+                        </div>
                         {% endif %}
+
+                        {% if patient.phone %}
+                        <div class="patient-detail">
+                            <span class="detail-label">📱 Teléfono:</span>
+                            <span class="detail-value">{{ patient.phone }}</span>
+                        </div>
+                        {% endif %}
+
+                        <div class="patient-detail">
+                            <span class="detail-label">📝 Registrado:</span>
+                            <span class="detail-value">{{ patient.created_at|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="result-card-footer">
+                        <a href="{% url 'users:patient_detail' patient.id %}" class="btn-view-detail">
+                            <span>👁️</span>
+                            <span>Ver Detalles</span>
+                        </a>
+                        <a href="#" class="btn-request-diagnosis">
+                            <span>🤖</span>
+                            <span>Solicitar Análisis</span>
+                        </a>
                     </div>
                 </div>
+                {% endfor %}
             </div>
 
-            <!-- Información Adicional -->
-            <div class="detail-section">
-                <div class="detail-section-title">Información Adicional</div>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Registrado Por</span>
-                        <span class="detail-value">{{ patient.created_by.get_full_name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Fecha de Registro</span>
-                        <span class="detail-value">{{ patient.created_at|date:"d/m/Y H:i" }}</span>
-                    </div>
-                </div>
-                <div class="info-box">
-                    <strong>ℹ️ Nota:</strong> Este paciente está activo en el sistema y disponible para realizar diagnósticos.
-                </div>
+            {% elif search_query and not results %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3 class="empty-state-title">No se encontraron coincidencias</h3>
+                <p class="empty-state-description">
+                    No hay pacientes que coincidan con "<strong>{{ search_query }}</strong>"
+                </p>
+                <p class="empty-state-hint">
+                    Intenta con otro nombre o número de documento
+                </p>
             </div>
 
-            <!-- Acciones -->
-            <div class="action-buttons">
-                <a href="{% url 'users:request_diagnosis_ia' %}?patient_id={{ patient.id }}" class="btn-primary" target="_blank" rel="noopener noreferrer">
-                    <span>🤖</span>
-                    <span>Solicitar Análisis IA</span>
-                </a>
-                <a href="{% url 'users:search_patient' %}" class="btn-secondary">
-                    <span>🔍</span>
-                    <span>Nueva Búsqueda</span>
-                </a>
+            {% else %}
+            <div class="initial-state">
+                <div class="initial-state-icon">🔍</div>
+                <h3 class="initial-state-title">Ingresa un criterio de búsqueda</h3>
+                <p class="initial-state-description">
+                    Busca pacientes por nombre o número de documento para ver sus detalles
+                </p>
             </div>
+            {% endif %}
         </div>
+
+>>>>>>> Stashed changes
     </div>
 </div>
 {% endblock %}
