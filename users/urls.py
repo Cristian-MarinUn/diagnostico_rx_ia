@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from . import views_user_profile
+from . import views_admin_user_edit
+from . import views_deactivate_user
 from .views import Verify2FAView
 
 app_name = 'users'
@@ -18,6 +21,12 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
+    # Perfil de usuario específico (solo admin)
+    path('profile/<int:user_id>/', views_user_profile.user_profile_view, name='user_profile'),
+    # Edición de usuario específico (solo admin)
+    path('edit/<int:user_id>/', views_admin_user_edit.admin_user_edit_view, name='admin_user_edit'),
+    # Desactivar usuario (AJAX)
+    path('deactivate_user/', views_deactivate_user.deactivate_user, name='deactivate_user'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('dashboard/user/', views.user_dashboard_view, name='user_dashboard'),
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
