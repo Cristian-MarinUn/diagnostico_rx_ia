@@ -54,8 +54,9 @@
                         <td>{{ u.fecha_registro|date:"Y-m-d H:i" }}</td>
                         <td>
                             <div class="table-actions">
-                                <a href="{% url 'users:profile' %}" class="btn btn-outline btn-icon-sm" title="Ver perfil">Ver</a>
-                                <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">Editar</a>
+                                <a href="{% url 'users:user_profile' u.id %}" class="btn btn-outline btn-icon-sm" title="Ver perfil"><span>👁️</span></a>
+                                <a href="{% url 'users:admin_user_edit' u.id %}" class="btn btn-outline btn-icon-sm" title="Editar"><span>✏️</span></a>
+                                <button class="btn btn-danger btn-icon-sm deactivate-btn" data-user-id="{{ u.id }}" title="Desactivar"><span>🚫</span></button>
                             </div>
                         </td>
                     </tr>
@@ -82,4 +83,52 @@
         </div>
     </div>
 </div>
+<!-- Modal de confirmación -->
+<div id="deactivateModal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100vw; height:100vh; background:rgba(15,23,42,0.45);">
+    <div style="background: #fff; max-width: 350px; margin: 10vh auto; border-radius: 1.2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 2rem; text-align: center;">
+        <div style="font-size:1.2rem; font-weight:600; color:#1e293b; margin-bottom:1.5rem;">¿Estas seguro que deseas desactivar este usuario?</div>
+        <div style="display:flex; gap:1rem; justify-content:center;">
+            <button id="confirmDeactivateBtn" class="btn btn-danger">Confirmar</button>
+            <button id="cancelDeactivateBtn" class="btn btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let userIdToDeactivate = null;
+document.querySelectorAll('.deactivate-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        userIdToDeactivate = this.getAttribute('data-user-id');
+        document.getElementById('deactivateModal').style.display = 'block';
+    });
+});
+document.getElementById('cancelDeactivateBtn').onclick = function() {
+    document.getElementById('deactivateModal').style.display = 'none';
+    userIdToDeactivate = null;
+};
+document.getElementById('confirmDeactivateBtn').onclick = function() {
+    if (!userIdToDeactivate) return;
+    fetch("{% url 'users:deactivate_user' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'user_id=' + encodeURIComponent(userIdToDeactivate)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.error || 'Error al desactivar usuario.');
+            document.getElementById('deactivateModal').style.display = 'none';
+        }
+    })
+    .catch(() => {
+        alert('Error de red.');
+        document.getElementById('deactivateModal').style.display = 'none';
+    });
+};
+</script>
 {% endblock %}

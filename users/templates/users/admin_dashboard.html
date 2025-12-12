@@ -33,10 +33,7 @@
                         <span>➕</span>
                         <span>Nuevo Usuario</span>
                     </a>
-                    <a href="#" class="btn btn-secondary">
-                        <span>📊</span>
-                        <span>Generar Reporte</span>
-                    </a>
+                    <!-- Botón 'Generar Reporte' eliminado -->
                 </div>
             </div>
         </div>
@@ -135,14 +132,10 @@
                     <span class="section-title-icon">⚡</span>
                     <span>Gestión Rápida</span>
                 </h2>
-                <a href="#" class="section-link">
-                    <span>Ver todas las opciones</span>
-                    <span>→</span>
-                </a>
             </div>
 
             <div class="actions-grid">
-                <a href="#" class="action-card">
+                <a href="{% url 'users:user_list' %}" class="action-card">
                     <div class="action-icon">
                         <span>👥</span>
                     </div>
@@ -152,7 +145,9 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
+
+                
+                <a href="{% url 'users:manage_permissions' %}" class="action-card">
                     <div class="action-icon">
                         <span>🔐</span>
                     </div>
@@ -161,8 +156,7 @@
                         Configurar roles y permisos de acceso al sistema
                     </p>
                 </a>
-
-                <a href="#" class="action-card">
+                <a href="{% url 'users:reports' %}" class="action-card">
                     <div class="action-icon">
                         <span>📊</span>
                     </div>
@@ -172,7 +166,7 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{% url 'users:monitoring' %}" class="action-card">
                     <div class="action-icon">
                         <span>🔍</span>
                     </div>
@@ -182,17 +176,8 @@
                     </p>
                 </a>
 
-                <a href="#" class="action-card">
-                    <div class="action-icon">
-                        <span>⚙️</span>
-                    </div>
-                    <h3 class="action-title">Configuración</h3>
-                    <p class="action-description">
-                        Ajustar parámetros y configuración general del sistema
-                    </p>
-                </a>
 
-                <a href="#" class="action-card">
+                <a href="{% url 'users:notifications' %}" class="action-card">
                     <div class="action-icon">
                         <span>🔔</span>
                     </div>
@@ -202,19 +187,8 @@
                     </p>
                 </a>
             </div>
-        </section>
 
-        <!-- Users Management Table -->
-        <section class="recent-activity-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <span class="section-title-icon">👥</span>
-                    <span>Usuarios Recientes</span>
-                </h2>
-                <a href="{% url 'users:user_list' %}" class="section-link">
-                    <span>Ver todos los usuarios</span>
-                    <span>→</span>
-                </a>
+            <!-- Botón 'Configuración' y 'Ver todos los usuarios' eliminados según solicitud -->
             </div>
 
             <div class="users-table-container">
@@ -226,7 +200,6 @@
                             <th>Rol</th>
                             <th>Estado</th>
                             <th>Último Acceso</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -262,17 +235,7 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="table-actions">
-                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Ver perfil">
-                                        <span>👁️</span>
-                                    </a>
-                                    <a href="#" class="btn btn-outline btn-icon-sm" title="Editar">
-                                        <span>✏️</span>
-                                    </a>
-                                    <button class="btn btn-danger btn-icon-sm" title="Desactivar">
-                                        <span>🚫</span>
-                                    </button>
-                                </div>
+                                <!-- Acciones removidas, ahora solo en Gestionar Usuarios -->
                             </td>
                         </tr>
                         {% endfor %}

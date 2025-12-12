@@ -53,6 +53,11 @@
             patientIdInput.value = savedPatientId;
             console.log('Obteniendo datos del paciente desde API con ID:', savedPatientId);
             
+            // Ocultar búsqueda, mostrar formulario
+            const patientSearchSection = document.getElementById('patient-search-section');
+            if (patientSearchSection) patientSearchSection.style.display = 'none';
+            if (form) form.style.display = 'block';
+            
             // Usar el endpoint directo por ID
             fetch(`/diagnostico/api/patient/${savedPatientId}/`)
                 .then(response => {
@@ -78,6 +83,10 @@
                 });
         } else {
             console.warn('No hay paciente guardado en sessionStorage');
+            // Mostrar búsqueda, ocultar formulario
+            const patientSearchSection = document.getElementById('patient-search-section');
+            if (patientSearchSection) patientSearchSection.style.display = 'block';
+            if (form) form.style.display = 'none';
         }
 
         // Inicializar modales de bootstrap si están disponibles; crear stubs si no
@@ -428,6 +437,11 @@
         // Limpiar búsqueda
         if (patientSearch) patientSearch.value = patient.name;
         if (patientResults) patientResults.classList.remove('show');
+        
+        // Ocultar búsqueda, mostrar formulario
+        const patientSearchSection = document.getElementById('patient-search-section');
+        if (patientSearchSection) patientSearchSection.style.display = 'none';
+        if (form) form.style.display = 'block';
         
         // Limpiar error si existe
         clearFieldError(patientSearch);

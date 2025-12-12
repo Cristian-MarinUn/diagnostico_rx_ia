@@ -1,0 +1,242 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Solicitar Análisis IA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
+<script src="{% static 'users/js/diagnosis_ia.js' %}"></script>
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+    .ia-module-wrapper { padding: 2rem 1rem; }
+    .ia-container { max-width: 1100px; margin: 0 auto; }
+    .image-placeholder { width: 100%; height: 420px; border: 2px dashed rgba(255,255,255,0.12); border-radius: 8px; display:flex; align-items:center; justify-content:center; color:#94a3b8; background: rgba(255,255,255,0.02); }
+    .diag-card { background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); padding:1rem; border-radius:8px; }
+    
+    /* Estilos para selector, botones y formularios */
+    .styled-select {
+        padding: 0.875rem 1.25rem;
+        background: rgba(15, 23, 42, 0.6);
+        border: 2px solid rgba(100, 116, 139, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .styled-select:focus {
+        outline: none;
+        background: rgba(15, 23, 42, 0.8);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .styled-select option {
+        background: #1e293b;
+        color: #e2e8f0;
+    }
+    
+    .btn-simulate {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-simulate:hover {
+        background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-simulate:active {
+        transform: translateY(0);
+    }
+    
+    .btn-reset {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid rgba(100, 116, 139, 0.4);
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-reset:hover {
+        background: rgba(100, 116, 139, 0.3);
+        color: #cbd5e1;
+        border-color: rgba(100, 116, 139, 0.6);
+    }
+    
+    .styled-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(15, 23, 42, 0.6);
+        color: #e2e8f0;
+        border: 1px solid rgba(100, 116, 139, 0.2);
+        border-radius: 6px;
+        font-size: 1rem;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+    
+    .styled-textarea:focus {
+        outline: none;
+        background: rgba(15, 23, 42, 0.8);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .styled-textarea::placeholder {
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ia-module-wrapper">
+  <div class="ia-container">
+    <div class="section-header" style="margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h1 style="color:#fff; font-size:1.75rem; display:flex; gap:0.6rem; align-items:center;"><span>🤖</span> <span>Diagnóstico Asistido por IA</span></h1>
+        <p style="color:#94a3b8; margin-top:0.25rem;">Selecciona un paciente y simula un diagnóstico preliminar. (Imagen simulada — espacio reservado)</p>
+      </div>
+      <div>
+        <a href="{% url 'users:user_dashboard' %}" class="btn-back" style="text-decoration:none;">← Volver al Dashboard</a>
+      </div>
+    </div>
+
+    <div class="diag-card" style="margin-bottom:1rem;">
+      <form method="post">
+        {% csrf_token %}
+        <div style="display:flex; gap:1rem; align-items:flex-end;">
+          <div style="flex:1;">
+            <label for="patient_id" style="color:#cbd5e1; font-weight:600; display:block; margin-bottom:0.5rem;">Paciente</label>
+            <select id="patient_id" name="patient_id" class="styled-select" style="width:100%;">
+              <option value="">-- Selecciona un paciente --</option>
+              {% for p in patients %}
+                <option value="{{ p.id }}" {% if selected_patient and p.id == selected_patient.id %}selected{% endif %}>{{ p.get_full_name }} ({{ p.identification }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div style="display:flex; gap:0.5rem;">
+            <button name="action" value="simulate" class="btn-simulate" type="submit">Solicitar Diagnóstico Preliminar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    {% if not simulated_diag and selected_patient %}
+      <div class="diag-card" style="color:#cbd5e1;">
+        <p>No se encontraron diagnósticos preliminares para el paciente seleccionado.</p>
+      </div>
+    {% endif %}
+
+    {% if simulated_diag %}
+      <div class="diag-card" style="display:grid; grid-template-columns: 1fr 420px; gap:1rem; align-items:start;">
+        <div>
+          <h2 style="color:#e2e8f0;">{{ simulated_diag.title }}</h2>
+          <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); padding:0.75rem; border-radius:6px; margin-bottom:1rem; color:#86efac; font-size:0.9rem;">
+            <strong>ℹ️ Paciente:</strong> {{ simulated_diag.patient_name }} ({{ simulated_diag.patient_id_doc }})
+          </div>
+          <p style="color:#93c5fd; font-weight:600;">Resultado: <span style="color:#e2e8f0; font-weight:700;">{{ simulated_diag.result }}</span></p>
+          <p style="color:#cbd5e1;">Nivel de confianza: <strong>{{ simulated_diag.confidence }}%</strong></p>
+
+          <div style="margin-top:1rem;">
+            <h3 style="color:#cbd5e1;">Observaciones automáticas</h3>
+            <ul style="color:#cbd5e1;">
+              {% for obs in simulated_diag.observations %}
+                <li>{{ obs }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+        </div>
+
+        <div>
+          <div class="image-placeholder">
+            <div style="text-align:center;">
+              <div style="font-size:2.25rem;">🖼️</div>
+              <div style="color:#94a3b8;">Imagen del módulo "Nuevo Diagnóstico"</div>
+              <div style="color:#64748b; font-size:0.85rem; margin-top:0.5rem;">Cargada desde el panel de imágenes médicas</div>
+            </div>
+          </div>
+
+          <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
+            <a href="{% url 'medical_images:upload-image' %}" class="btn-simulate" style="text-align:center; text-decoration:none;">Cargar Nueva Imagen</a>
+            <a href="#" class="btn-reset" style="text-align:center; text-decoration:none;">Descargar Reporte (pendiente)</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentarios del médico (CU-014) -->
+      <div class="diag-card" style="margin-top:1rem;">
+        <h3 style="color:#e2e8f0; margin-bottom:0.5rem;">Comentarios</h3>
+
+        <!-- Lista de comentarios guardados -->
+        <div style="margin-bottom:1rem;">
+          <ul id="comments-list" style="list-style:none; padding-left:0;">
+            {% for c in diag_comments %}
+              <li style="padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                <div style="color:#93c5fd; font-weight:600;">{{ c.user.get_full_name }} <span style="color:#94a3b8; font-weight:400;">— {{ c.timestamp|date:'d/m/Y H:i' }}</span></div>
+                <div style="color:#cbd5e1; margin-top:0.25rem;">{{ c.descripcion }}</div>
+              </li>
+            {% empty %}
+              <div style="color:#94a3b8;">Aún no hay comentarios guardados para este diagnóstico.</div>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Formulario para agregar comentario -->
+        <div id="finalize-message" class="message success" style="margin-bottom:1rem; display:none;"></div>
+        {% if finalized %}
+          <div class="message success" style="margin-bottom:1rem;">Diagnóstico finalizado. No se pueden agregar más comentarios.</div>
+        {% else %}
+        <form id="comment-form" method="post" action="{% url 'users:request_diagnosis_ia' %}" data-url="{% url 'users:request_diagnosis_ia' %}">
+          {% csrf_token %}
+          <input type="hidden" name="patient_id" value="{{ selected_patient.id }}">
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label for="comment_text" style="color:#cbd5e1;">Agregar observación</label>
+            <textarea id="comment_text" name="comment_text" rows="4" class="styled-textarea" placeholder="Escribe tus observaciones clínicas aquí..."></textarea>
+            <div style="display:flex; gap:0.5rem;">
+              <button name="action" value="save_comment" class="btn-simulate" type="submit" style="width:auto;">Guardar comentarios</button>
+              <button id="finalize-btn" type="button" class="btn-reset" data-url="{% url 'users:request_diagnosis_ia' %}" data-patient="{{ selected_patient.id }}">Finalizar diagnóstico</button>
+            </div>
+          </div>
+        </form>
+        {% endif %}
+
+        <!-- Modal de confirmación -->
+        <div id="finalize-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); align-items:center; justify-content:center; z-index:9999;">
+          <div style="background:#1e293b; border-radius:10px; padding:2rem; min-width:320px; box-shadow:0 8px 32px rgba(0,0,0,0.25); position:relative;">
+            <button id="close-modal-btn" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <h2 style="color:#e2e8f0; margin-bottom:1rem;">¿Desea finalizar el diagnóstico?</h2>
+            <div style="display:flex; gap:1rem; justify-content:center; margin-top:1.5rem;">
+              <button id="finalize-yes-btn" class="btn-simulate" style="width:100px;">Sí</button>
+              <button id="finalize-no-btn" class="btn-reset" style="width:100px;">No</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

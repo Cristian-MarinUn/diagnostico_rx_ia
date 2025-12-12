@@ -1,25 +1,578 @@
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+
+
+from django.contrib.auth.models import Permission
+from authentication.models import User
+from django.db import models
+
+# Modelo intermedio para mapear permisos a roles personalizados
+class RolePermission(models.Model):
+    rol = models.CharField(max_length=20, choices=User.ROLES, unique=True)
+    permissions = models.ManyToManyField(Permission, blank=True)
+
+    def __str__(self):
+        return self.get_rol_display()
+
+
+@login_required
+@user_passes_test(lambda u: u.rol == 'ADMINISTRADOR')
+def manage_permissions_view(request):
+    """
+    Gestión de permisos por rol personalizado (campo 'rol' en User).
+    """
+    message = None
+    # Listar los roles definidos en el modelo User
+    roles = [{'id': r[0], 'name': r[1]} for r in User.ROLES]
+    all_permissions = Permission.objects.all().order_by('name')
+    selected_role_id = request.POST.get('role') or request.GET.get('role')
+    current_permissions = []
+    permissions = None
+
+    selected_role = None
+    if selected_role_id:
+        selected_role = selected_role_id
+        # Obtener o crear el registro de permisos para ese rol
+        role_perm, _ = RolePermission.objects.get_or_create(rol=selected_role)
+        permissions = role_perm.permissions.all()
+        current_permissions = [perm.id for perm in permissions]
+
+    if request.method == 'POST' and selected_role:
+        # Guardar cambios de permisos
+        new_permissions_ids = request.POST.getlist('permissions')
+        new_permissions = Permission.objects.filter(id__in=new_permissions_ids)
+        role_perm, _ = RolePermission.objects.get_or_create(rol=selected_role)
+        role_perm.permissions.set(new_permissions)
+        role_perm.save()
+        message = f"Permisos actualizados para el rol '{dict(User.ROLES)[selected_role]}'."
+        # Refrescar permisos actuales
+        current_permissions = [perm.id for perm in role_perm.permissions.all()]
+        permissions = role_perm.permissions.all()
+
+    context = {
+        'roles': roles,
+        'all_permissions': all_permissions,
+        'selected_role_id': selected_role,
+        'current_permissions': current_permissions,
+        'permissions': permissions,
+        'message': message,
+    }
+    return render(request, "users/manage_permissions.html", context)
+from django.views.decorators.http import require_http_methods
+
+# CU-020: Reportes Estadísticos
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def reports_view(request):
+    """
+    Vista para CU-020: Generar Reportes Estadísticos
+    Permite seleccionar tipo de reporte, muestra datos en tabla y exporta a PDF/Excel.
+    """
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para acceder a los reportes.")
+        return redirect("users:admin_dashboard")
+
+    report_type = request.GET.get("report_type", "precision")
+    no_data = False
+    report_data = []
+
+    # Simulación de datos históricos
+    if report_type == "precision":
+        report_data = [
+            {"fecha": "2025-12-09", "precision": 96.8},
+            {"fecha": "2025-12-10", "precision": 97.1},
+        ]
+    elif report_type == "diagnosticos":
+        report_data = [
+            {"fecha": "2025-12-09", "cantidad": 87},
+            {"fecha": "2025-12-10", "cantidad": 92},
+        ]
+    elif report_type == "uso":
+        report_data = [
+            {"modulo": "Diagnóstico", "uso": 120},
+            {"modulo": "Imágenes", "uso": 98},
+            {"modulo": "Usuarios", "uso": 45},
+        ]
+
+    # Alternativa: no hay datos
+    if not report_data:
+        no_data = True
+
+    # Exportar a PDF/Excel (simulado)
+    if request.method == "POST":
+        export_type = request.POST.get("export")
+        if export_type == "pdf":
+            messages.success(request, "Reporte exportado a PDF (simulado).")
+        elif export_type == "excel":
+            messages.success(request, "Reporte exportado a Excel (simulado).")
+
+    context = {
+        "report_type": report_type,
+        "report_data": report_data,
+        "no_data": no_data,
+    }
+    return render(request, "users/reports.html", context)
+# ================================
+# CU-023: MONITOREO DE ACTIVIDAD DEL SISTEMA
+# ================================
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def monitoring_view(request):
+    """
+    Vista para mostrar logs de actividad y uso del sistema al administrador.
+    Permite filtrar por usuario, fecha y tipo de evento. Simula exportación.
+    """
+    usuario = request.GET.get('usuario', '').strip()
+    fecha = request.GET.get('fecha', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+    export = request.GET.get('export', '')
+
+    # Simulación de logs
+    logs = [
+        {'usuario': 'admin', 'fecha': '10/12/2025 18:00', 'tipo': 'login', 'descripcion': 'Acceso al sistema'},
+        {'usuario': 'tecnico1', 'fecha': '10/12/2025 18:05', 'tipo': 'operacion', 'descripcion': 'Carga de imagen RX'},
+        {'usuario': 'admin', 'fecha': '10/12/2025 18:10', 'tipo': 'operacion', 'descripcion': 'Exportación de registros'},
+    ]
+
+
+    # Filtrado básico
+    if usuario:
+        logs = [log for log in logs if usuario.lower() in log['usuario'].lower()]
+    if fecha:
+        logs = [log for log in logs if fecha in log['fecha']]
+    if tipo:
+        logs = [log for log in logs if tipo == log['tipo']]
+
+    # Simulación de exportación
+    if export:
+        # Aquí se podría generar un archivo CSV real
+        messages.success(request, 'Registros exportados correctamente (simulado).')
+
+    context = {
+        'logs': logs,
+    }
+    return render(request, 'users/monitoring.html', context)
+from django.contrib.auth.decorators import login_required
+# ================================
+# CU-017: COMPARAR ESTUDIOS
+# ================================
+from django.views.decorators.http import require_http_methods
+
+@login_required
+@require_http_methods(["GET"])
+def compare_studies_view(request):
+    """
+    Vista inicial para comparar estudios (CU-017).
+    Simula la selección de paciente, imagen actual y estudios previos.
+    """
+    # Simulación: lista de pacientes y estudios previos
+    # En el futuro, conectar con modelos reales
+    fake_patients = [
+        {"id": 1, "name": "Juan Pérez", "has_previous": True},
+        {"id": 2, "name": "Ana Gómez", "has_previous": False},
+    ]
+    context = {
+        "patients": fake_patients,
+        "page": "compare_studies"
+    }
+    return render(request, "users/compare_studies.html", context)
 # ================================
 # ARCHIVO: users/views.py
 # ================================
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.paginator import Paginator
-from datetime import timedelta
+from datetime import timedelta, date
 from authentication.models import User, Session, Log
 from django.utils.crypto import get_random_string
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from django.middleware.csrf import get_token
-from .models import Patient
+from .models import Patient, Notification
+# ================================
+# CU-024: NOTIFICACIONES DE ESTADO DE IMÁGENES
+# ================================
+
+
+
+@login_required
+def notifications_view(request):
+    """
+    Vista para mostrar notificaciones de estado de imágenes al técnico de salud.
+    """
+    user = request.user
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')
+    context = {
+        'notifications': notifications,
+    }
+    return render(request, 'users/notifications.html', context)
+
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = Notification.objects.filter(id=notification_id, user=request.user).first()
+    if notification and not notification.is_read:
+        notification.is_read = True
+        notification.save()
+    return redirect('users:notifications')
+
+@login_required
+def notification_detail(request, notification_id):
+    notification = Notification.objects.filter(id=notification_id, user=request.user).first()
+    if not notification:
+        return redirect('users:notifications')
+    context = {
+        'notification': notification,
+    }
+    return render(request, 'users/notification_detail.html', context)
+from diagnostico.models import AIDiagnosis
 from .forms import PatientRegistrationForm
+
+
+# ================================
+# CU-018: BÚSQUEDA DE PACIENTES
+# ================================
+
+@login_required
+def search_patient_view(request):
+    """
+    Módulo de búsqueda de pacientes según CU-018.
+    - Búsqueda por nombre (nombre completo) o ID (documento/cédula)
+    - Solo accesible para médicos radiólogos
+    - Muestra resultados con información del paciente
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    results = []
+    search_query = request.GET.get('q', '').strip()
+
+    if search_query:
+        # Búsqueda por nombre completo o por identificación (cédula)
+        results = Patient.objects.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(identification__icontains=search_query),
+            is_active=True
+        ).order_by('last_name', 'first_name')
+
+        if not results.exists():
+            messages.info(request, f'No se encontraron coincidencias para "{search_query}"')
+
+    context = {
+        'results': results,
+        'search_query': search_query,
+    }
+
+    return render(request, 'users/search_patient.html', context)
+
+
+@login_required
+def patient_detail_view(request, patient_id):
+    """
+    Vista detallada del paciente según CU-018.
+    - Muestra información completa del paciente seleccionado
+    - Solo accesible para médicos radiólogos
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    try:
+        patient = Patient.objects.get(id=patient_id, is_active=True)
+    except Patient.DoesNotExist:
+        messages.error(request, 'El paciente no fue encontrado.')
+        return redirect('users:search_patient')
+
+    context = {
+        'patient': patient,
+    }
+
+    return render(request, 'users/patient_detail.html', context)
+
+
+@login_required
+def diagnosis_history_view(request):
+    """
+    Implementación de CU-016: Historial de Diagnósticos.
+    - Solo accesible por médicos radiólogos
+    - Permite buscar por nombre o identificación y ver diagnósticos asociados
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder al Historial de Diagnósticos.')
+        return redirect('users:user_dashboard')
+
+    query = request.GET.get('q', '').strip()
+    patient_id = request.GET.get('patient_id', '').strip()
+    patients = []
+    patient = None
+    diagnoses = []
+
+    # Buscar paciente por id si se proporcionó
+    if patient_id:
+        try:
+            # try numeric id
+            patient = Patient.objects.get(id=int(patient_id), is_active=True)
+        except Exception:
+            try:
+                # fallback by identification
+                patient = Patient.objects.get(identification=patient_id, is_active=True)
+            except Patient.DoesNotExist:
+                patient = None
+
+    # Si no se obtuvo el paciente por id, ejecutar búsqueda por q
+    if not patient and query:
+        patients = Patient.objects.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(identification__icontains=query),
+            is_active=True
+        ).order_by('last_name', 'first_name')
+
+        if patients.count() == 1:
+            patient = patients.first()
+
+    if patient:
+        # Obtener diagnósticos del paciente
+        diagnoses = AIDiagnosis.objects.filter(patient=patient).order_by('-created_at')
+
+    context = {
+        'query': query,
+        'patients': patients,
+        'patient': patient,
+        'diagnoses': diagnoses,
+    }
+    return render(request, 'users/diagnosis_history.html', context)
+
+
+# ================================
+# CU-013: MÓDULO DE DIAGNÓSTICO ASISTIDO POR IA (SIMULACIÓN)
+# ================================
+
+
+@login_required
+def request_diagnosis_ia_view(request):
+    """
+    Módulo simplificado para 'Solicitar Análisis IA' según CU-013.
+    - Solo accesible para médicos radiólogos
+    - Permite seleccionar un paciente y simular la visualización de un
+      diagnóstico preliminar (imagen se muestra como espacio vacío para
+      futuras integraciones).
+    """
+    user = request.user
+    if user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permisos para acceder a este módulo.')
+        return redirect('users:user_dashboard')
+
+    patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+
+    # Si no existen pacientes en la base de datos, crear algunos de prueba
+    # Esto facilita la simulación del flujo cuando la instalación es limpia
+    if not patients.exists():
+        try:
+            sample_data = [
+                ('100001', 'Juan', 'Pérez', date(1980, 5, 12), 'M'),
+                ('100002', 'María', 'García', date(1975, 8, 3), 'F'),
+                ('100003', 'Carlos', 'Rodríguez', date(1990, 2, 20), 'M'),
+                ('100004', 'Laura', 'Pineda', date(1985, 11, 30), 'F'),
+                ('100005', 'Andrés', 'Ramírez', date(1978, 7, 14), 'M'),
+            ]
+            created = []
+            for ident, fn, ln, dob, gender in sample_data:
+                p = Patient.objects.create(
+                    identification=ident,
+                    first_name=fn,
+                    last_name=ln,
+                    date_of_birth=dob,
+                    gender=gender,
+                    email=f'{fn.lower()}.{ln.lower()}@example.com',
+                    phone='0000000000',
+                    created_by=request.user,
+                    is_active=True,
+                )
+                created.append(p)
+            patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+            messages.info(request, f'Se han creado {len(created)} pacientes de prueba para la simulación.')
+        except Exception:
+            # No bloquear el flujo si la creación falla
+            patients = Patient.objects.filter(is_active=True).order_by('last_name', 'first_name')
+    selected_patient = None
+    simulated_diag = None
+
+
+    finalized = False
+    if request.method == 'POST':
+        patient_id = request.POST.get('patient_id')
+        action = request.POST.get('action')
+        try:
+            selected_patient = Patient.objects.get(id=patient_id)
+        except Exception:
+            selected_patient = None
+
+        # AJAX para guardar comentario
+        if action == 'save_comment' and selected_patient and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            comment_text = request.POST.get('comment_text', '').strip()
+            if not comment_text:
+                return JsonResponse({'error': 'Debe ingresar al menos una observación'})
+            try:
+                diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+                descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
+                log = Log.objects.create(
+                    user=request.user,
+                    accion='USER_UPDATED',
+                    nivel='INFO',
+                    descripcion=descripcion,
+                    ip_address=get_client_ip(request)
+                )
+                return JsonResponse({
+                    'success': True,
+                    'author': request.user.get_full_name(),
+                    'timestamp': log.timestamp.strftime('%d/%m/%Y %H:%M'),
+                    'text': comment_text
+                })
+            except Exception as e:
+                return JsonResponse({'error': 'No fue posible guardar los comentarios. Intente nuevamente'})
+
+        if action == 'finalize_diag' and selected_patient:
+            # Crear diagnóstico real en AIDiagnosis
+            from diagnostico.models import AIDiagnosis, DiagnosisLog
+            diag = AIDiagnosis.objects.create(
+                patient=selected_patient,
+                requested_by=request.user,
+                status='COMPLETED',
+                diagnosis_result='Posible consolidación pulmonar en lóbulo inferior derecho',
+                confidence_level=87.4,
+                ai_observations=[
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                model_version='SIMULADO',
+            )
+            DiagnosisLog.objects.create(
+                diagnosis=diag,
+                action='COMPLETED',
+                performed_by=request.user,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            finalized = True
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.'})
+            else:
+                messages.success(request, 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.')
+
+        # Simular la obtención de un diagnóstico preliminar
+        if action == 'simulate' and selected_patient:
+            simulated_diag = {
+                'id': 1,
+                'patient_id': selected_patient.id,
+                'patient_name': selected_patient.get_full_name(),
+                'patient_id_doc': selected_patient.identification,
+                'title': f'Diagnóstico preliminar para {selected_patient.get_full_name()}',
+                'result': 'Posible consolidación pulmonar en lóbulo inferior derecho',
+                'confidence': 87.4,
+                'observations': [
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                'image_available': False,
+            }
+
+        # Manejo de comentarios (CU-014)
+        if action == 'save_comment' and selected_patient:
+            comment_text = request.POST.get('comment_text', '').strip()
+            if not comment_text:
+                messages.error(request, 'Debe ingresar al menos una observación')
+            else:
+                try:
+                    diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+                    descripcion = f"{diag_marker} Comentario agregado por {request.user.get_full_name()}: {comment_text}"
+                    Log.objects.create(
+                        user=request.user,
+                        accion='USER_UPDATED',
+                        nivel='INFO',
+                        descripcion=descripcion,
+                        ip_address=get_client_ip(request)
+                    )
+                    messages.success(request, 'Comentarios guardados exitosamente')
+                except Exception as e:
+                    messages.error(request, 'No fue posible guardar los comentarios. Intente nuevamente')
+
+        # CU-015: Finalizar diagnóstico
+        if action == 'finalize_diag' and selected_patient:
+            # Crear diagnóstico real en AIDiagnosis
+            from diagnostico.models import AIDiagnosis
+            diag = AIDiagnosis.objects.create(
+                patient=selected_patient,
+                requested_by=request.user,
+                status='COMPLETED',
+                diagnosis_result='Posible consolidación pulmonar en lóbulo inferior derecho',
+                confidence_level=87.4,
+                ai_observations=[
+                    'Opacidad localizada en proyección posterior',
+                    'Correlacionar clínicamente y considerar seguimiento',
+                    'Sugerir radiografía lateral para mejor evaluación'
+                ],
+                model_version='SIMULADO',
+            )
+            finalized = True
+            # Registrar log
+            from diagnostico.models import DiagnosisLog
+            DiagnosisLog.objects.create(
+                diagnosis=diag,
+                action='COMPLETED',
+                performed_by=request.user,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            messages.success(request, 'Diagnóstico finalizado y guardado correctamente. Ahora aparece en el historial.')
+
+    context = {
+        'patients': patients,
+        'selected_patient': selected_patient,
+        'simulated_diag': simulated_diag,
+        'finalized': finalized,
+    }
+
+    context = {
+        'patients': patients,
+        'selected_patient': selected_patient,
+        'simulated_diag': simulated_diag,
+    }
+
+    # Cargar comentarios previamente registrados para el paciente específico
+    diag_comments = []
+    try:
+        if selected_patient:
+            # Usamos un marcador con patient_id en la descripción para filtrar comentarios específicos
+            diag_marker = f"[DIAG_SIM:patient_{selected_patient.id}]"
+            diag_comments = Log.objects.filter(descripcion__contains=diag_marker).order_by('-timestamp')
+    except Exception:
+        diag_comments = []
+
+    context['diag_comments'] = diag_comments
+
+    return render(request, 'users/request_diagnosis_ia.html', context)
 
 # ================================
 # PERFIL DE USUARIO
@@ -726,3 +1279,83 @@ def get_system_activities():
     ]
     
     return activities
+
+# ================================
+# CU-018: BÚSQUEDA DE PACIENTES
+# ================================
+
+@login_required
+def search_patient_view(request):
+    """
+    Vista para buscar pacientes por nombre o ID de documento.
+    Implementa el CU-018: Búsqueda de Paciente
+    """
+    # Verificar que el usuario sea médico radiólogo
+    if request.user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permiso para acceder a esta sección.')
+        return redirect('users:user_dashboard')
+    
+    results = []
+    search_query = ''
+    error_message = ''
+    
+    if request.method == 'POST':
+        search_query = request.POST.get('search_query', '').strip()
+        
+        # Validar criterio de búsqueda
+        if not search_query or len(search_query) < 2:
+            error_message = 'Ingrese un criterio de búsqueda válido (mínimo 2 caracteres)'
+        else:
+            try:
+                # Buscar pacientes por nombre o documento
+                results = Patient.objects.filter(
+                    Q(first_name__icontains=search_query) |
+                    Q(last_name__icontains=search_query) |
+                    Q(identification__icontains=search_query),
+                    is_active=True
+                ).order_by('last_name', 'first_name')
+                
+                if not results.exists():
+                    error_message = 'No se encontraron coincidencias'
+                    
+            except Exception as e:
+                error_message = f'Error al realizar la búsqueda: {str(e)}'
+    
+    context = {
+        'results': results,
+        'search_query': search_query,
+        'error_message': error_message,
+    }
+    
+    return render(request, 'users/search_patient.html', context)
+
+
+@login_required
+def patient_detail_view(request, patient_id):
+    """
+    Vista para mostrar los detalles completos de un paciente.
+    Se accede después de seleccionar un paciente en la búsqueda.
+    """
+    # Verificar que el usuario sea médico radiólogo
+    if request.user.rol != 'MEDICO_RADIOLOGO':
+        messages.error(request, 'No tienes permiso para acceder a esta sección.')
+        return redirect('users:user_dashboard')
+    
+    try:
+        patient = Patient.objects.get(id=patient_id, is_active=True)
+        
+        # Obtener información relacionada del paciente
+        from diagnostico.models import AIDiagnosis
+        diagnoses = AIDiagnosis.objects.filter(patient=patient).order_by('-created_at')[:10]
+        
+        context = {
+            'patient': patient,
+            'diagnoses': diagnoses,
+            'age': patient.get_age(),
+        }
+        
+        return render(request, 'users/patient_detail.html', context)
+        
+    except Patient.DoesNotExist:
+        messages.error(request, 'El paciente no fue encontrado.')
+        return redirect('users:search_patient')

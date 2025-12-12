@@ -62,8 +62,8 @@
                                 <!-- Card de Paciente Seleccionado (Visible por defecto) -->
                                 <div id="selected-patient" class="selected-patient-card">
                                     <div class="d-flex justify-content-between align-items-start">
-                                        <div style="flex: 1;">
-                                            <h6 class="mb-2" id="selected-patient-name" style="font-size: 1.25rem;"></h6>
+                                        <div>
+                                            <h6 class="mb-2" id="selected-patient-name"></h6>
                                             <p class="mb-1 text-muted" id="selected-patient-id"></p>
                                             <small class="text-muted" id="selected-patient-age"></small>
                                         </div>
@@ -162,12 +162,10 @@
                                             <div class="col-auto">
                                                 <button 
                                                     type="button" 
-                                                    class="btn btn-sm btn-outline-danger"
+                                                    class="btn btn-outline-danger"
                                                     onclick="clearFile()"
-                                                >
-                                                
-                                                    <i class="fas fa-trash">Cancelar</i>
-                                                </button>
+                                                >Cancelar
+                                            </button>
                                             </div>
                                         </div>
                                     </div>

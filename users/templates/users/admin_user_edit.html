@@ -1,0 +1,133 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Editar Usuario - {{ user_obj.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+<style>
+    .edit-user-card {
+        background: rgba(30, 41, 59, 0.7);
+        border-radius: 1.5rem;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        max-width: 600px;
+        margin: 0 auto;
+        margin-top: 2rem;
+    }
+    .edit-user-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .edit-user-desc {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+    .form-group label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    .alert-info {
+        background: rgba(102, 126, 234, 0.12);
+        color: var(--primary-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.5rem;
+        margin-top: 1.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper admin-dashboard">
+    <div class="dashboard-container">
+        <div class="edit-user-card">
+            <div class="edit-user-title">Editar Usuario ✏️</div>
+            <div class="edit-user-desc">Modifica los datos del usuario seleccionado. Los cambios se guardan automáticamente y quedan registrados para auditoría.</div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <span>{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <form method="post" id="editUserForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Nombre <span class="required">*</span></label>
+                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:user_obj.first_name }}" placeholder="Nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Apellido <span class="required">*</span></label>
+                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:user_obj.last_name }}" placeholder="Apellido" required>
+                </div>
+                <div class="form-group">
+                    <label>Teléfono de Contacto</label>
+                    <input type="tel" name="telefono" class="form-control" value="{{ form.telefono.value|default:user_obj.telefono }}" placeholder="+57300123456">
+                </div>
+                <div class="form-group">
+                    <label>Identificación</label>
+                    <input type="text" name="identificacion" class="form-control" value="{{ form.identificacion.value|default:user_obj.identificacion }}">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico <span class="required">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ form.email.value|default:user_obj.email }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select name="rol" class="form-control">
+                        {% for value, label in form.fields.rol.choices %}
+                            <option value="{{ value }}" {% if form.rol.value == value or user_obj.rol == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select name="estado" class="form-control">
+                        <option value="True" {% if form.estado.value == 'True' or user_obj.estado %}selected{% endif %}>Activo</option>
+                        <option value="False" {% if form.estado.value == 'False' or not user_obj.estado %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Registro</label>
+                    <input type="text" class="form-control" value="{{ user_obj.fecha_registro|date:'d/m/Y H:i' }}" disabled>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    <a href="{% url 'users:user_profile' user_obj.id %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+            <div class="alert-info">Los campos marcados con <span style="color: #ef4444;">*</span> son obligatorios.</div>
+            <a href="{% url 'users:user_list' %}" class="btn btn-secondary" style="margin-top: 2rem;">← Volver a la lista de usuarios</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('editUserForm');
+        form.addEventListener('submit', function(e) {
+            const firstName = document.querySelector('input[name="first_name"]').value.trim();
+            const lastName = document.querySelector('input[name="last_name"]').value.trim();
+            if (!firstName || !lastName) {
+                e.preventDefault();
+                alert('El nombre y apellido son requeridos');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,426 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Buscar Paciente{% endblock %}
+
+{% block extra_css %}
+<<<<<<< Updated upstream
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+    
+    .search-wrapper { padding: 2rem 1rem; }
+    .search-container { max-width: 1000px; margin: 0 auto; }
+    
+    .search-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .search-header h1 {
+        color: #e2e8f0;
+        font-size: 1.75rem;
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        margin: 0;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid rgba(100, 116, 139, 0.4);
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-back:hover {
+        background: rgba(100, 116, 139, 0.3);
+        color: #cbd5e1;
+        border-color: rgba(100, 116, 139, 0.6);
+    }
+    
+    .search-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+    }
+    
+    .search-form {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+    
+    .search-form-group {
+        flex: 1;
+    }
+    
+    .search-form label {
+        color: #cbd5e1;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: rgba(15, 23, 42, 0.6);
+        border: 2px solid rgba(100, 116, 139, 0.3);
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        background: rgba(15, 23, 42, 0.8);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .search-input::placeholder {
+        color: #64748b;
+    }
+    
+    .search-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .search-button:hover {
+        background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .search-button:active {
+        transform: translateY(0);
+    }
+    
+    .results-section {
+        margin-top: 2rem;
+    }
+    
+    .results-header {
+        color: #e2e8f0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .patient-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        padding: 1.25rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .patient-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .patient-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 0.75rem;
+    }
+    
+    .patient-name {
+        color: #e2e8f0;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .patient-id {
+        color: #3b82f6;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .patient-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        color: #cbd5e1;
+        font-size: 0.95rem;
+    }
+    
+    .patient-info-item {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .patient-info-label {
+        color: #94a3b8;
+        font-weight: 600;
+    }
+    
+    .patient-info-value {
+        color: #e2e8f0;
+    }
+    
+    .patient-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1rem;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        border: none;
+        border-radius: 6px;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .btn-view:hover {
+        background: linear-gradient(135deg, #1e40af, #1e3a8a);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #94a3b8;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state-text {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .message.info {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #93c5fd;
+    }
+    
+    .message.error {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+    }
+    
+    .message.success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #86efac;
+    }
+=======
+<link rel="stylesheet" href="{% static 'users/css/search_patient.css' %}">
+<style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+>>>>>>> Stashed changes
+</style>
+{% endblock %}
+
+{% block content %}
+<<<<<<< Updated upstream
+<div class="search-wrapper">
+    <div class="search-container">
+        <div class="search-header">
+            <h1>
+                <span>🔍</span>
+                <span>Buscar Paciente</span>
+            </h1>
+            <a href="{% url 'users:user_dashboard' %}" class="btn-back">← Volver al Dashboard</a>
+        </div>
+
+        <!-- Formulario de búsqueda -->
+        <div class="search-card">
+            <form method="get" class="search-form">
+                <div class="search-form-group">
+                    <label for="search_input">Criterio de búsqueda</label>
+                    <input 
+                        type="text" 
+                        id="search_input" 
+                        name="q" 
+                        class="search-input" 
+                        placeholder="Ingresa nombre o número de documento..." 
+                        value="{{ search_query }}"
+                        autofocus
+                    >
+                </div>
+                <button type="submit" class="search-button">
+                    <span>🔎</span>
+                    <span>Buscar</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Resultados -->
+        {% if search_query %}
+            <div class="results-section">
+                {% if results %}
+                    <div class="results-header">
+                        {{ results|length }} resultado{{ results|length|pluralize }} encontrado{{ results|length|pluralize }}
+                    </div>
+                    
+                    {% for patient in results %}
+                        <div class="patient-card">
+                            <div class="patient-card-header">
+                                <div class="patient-name">{{ patient.get_full_name }}</div>
+                                <div class="patient-id">{{ patient.identification }}</div>
+                            </div>
+                            
+                            <div class="patient-info">
+                                <div class="patient-info-item">
+                                    <span class="patient-info-label">Fecha de Nacimiento:</span>
+                                    <span class="patient-info-value">{{ patient.date_of_birth|date:"d/m/Y" }}</span>
+                                </div>
+                                <div class="patient-info-item">
+                                    <span class="patient-info-label">Género:</span>
+                                    <span class="patient-info-value">{{ patient.get_gender_display }}</span>
+                                </div>
+                                <div class="patient-info-item">
+                                    <span class="patient-info-label">Email:</span>
+                                    <span class="patient-info-value">{{ patient.email }}</span>
+                                </div>
+                                <div class="patient-info-item">
+                                    <span class="patient-info-label">Teléfono:</span>
+                                    <span class="patient-info-value">{{ patient.phone }}</span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🚫</div>
+                        <div class="empty-state-text">No se encontraron pacientes</div>
+                        <p style="color: #64748b;">Intenta con otro criterio de búsqueda</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">Ingresa un criterio de búsqueda</div>
+                <p style="color: #64748b;">Puedes buscar por nombre o número de documento</p>
+            </div>
+        {% endif %}
+=======
+<div class="search-patient-wrapper">
+    <div class="search-patient-container">
+        
+        <!-- Header -->
+        <div class="search-header">
+            <div class="header-content">
+                <h1 class="header-title">
+                    <span class="header-icon">🔎</span>
+                    <span>Buscar Paciente</span>
+                </h1>
+                <p class="header-description">
+                    Busca pacientes por nombre o número de documento
+                </p>
+            </div>
+            <a href="{% url 'users:user_dashboard' %}" class="btn-back">
+                <span>←</span>
+                <span>Volver al Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form-container">
+            <form method="POST" class="search-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="search_query" class="form-label">
+                        <span class="label-text">Criterio de Búsqueda</span>
+                        <span class="label-hint">(nombre o ID)</span>
+                    </label>
+                    <div class="search-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="search_query"
+                            name="search_query"
+                            class="search-input"
+                            placeholder="Ej: Juan García o 123456789"
+                            value="{{ search_query }}"
+                            minlength="2"
+                            required
+                        >
+                        <button type="submit" class="search-button">
+                            <span>🔍</span>
+                            <span>Buscar</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Error Message -->
+        {% if error_message %}
+        <div class="alert alert-error">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <p class="alert-title">{{ error_message }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+</div>
+{% endblock %}

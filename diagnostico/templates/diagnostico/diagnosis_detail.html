@@ -9,6 +9,11 @@
 
 {% block content %}
 <div class="diagnosis-detail-container" data-diagnosis-id="{{ diagnosis.id }}">
+    <div style="margin-bottom:1.5rem;">
+        <a href="{% url 'users:diagnosis_history' %}?patient_id={{ diagnosis.patient.id }}" class="btn-back" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;padding:0.875rem 1.25rem;background:rgba(100,116,139,0.2);border:1px solid rgba(100,116,139,0.4);border-radius:8px;color:#94a3b8;font-weight:600;cursor:pointer;transition:all 0.3s ease;">
+            ← Volver al Historial
+        </a>
+    </div>
     <!-- Status Header -->
     <div class="status-header">
         <div class="status-row">
@@ -230,7 +235,7 @@
                     <button class="btn btn-primary" style="width: 100%;" onclick="validateDiagnosis({{ diagnosis.id }})">
                         ✓ Validar Diagnóstico
                     </button>
-                    <button class="btn btn-outline" style="width: 100%;">
+                    <button class="btn btn-outline" style="width: 100%;" onclick="exportDiagnosisPDF({{ diagnosis.id }})">
                         📥 Exportar PDF
                     </button>
                     <button class="btn btn-secondary" style="width: 100%;" onclick="discardDiagnosis({{ diagnosis.id }})">
@@ -279,7 +284,14 @@
     {% endif %}
 </div>
 
+
 <script src="{% static 'diagnostico/js/diagnosis_detail.js' %}"></script>
+<script>
+    // Refuerzo: definir la función en el scope global
+    window.exportDiagnosisPDF = function(diagnosisId) {
+        window.open(`/diagnostico/export-pdf/${diagnosisId}/`, '_blank');
+    };
+</script>
 
 {% if diagnosis.status == 'PENDING' or diagnosis.status == 'PROCESSING' %}
 <script>

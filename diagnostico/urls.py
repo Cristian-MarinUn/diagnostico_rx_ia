@@ -25,9 +25,11 @@ urlpatterns = [
     # Descartar diagnóstico
     path('discard/<int:diagnosis_id>/', views.discard_diagnosis, name='discard_diagnosis'),
     
+    # Exportar PDF (CU-019)
+    path('export-pdf/<int:diagnosis_id>/', views.export_diagnosis_pdf, name='export_diagnosis_pdf'),
     # Verificar estado
     path('check-status/<int:diagnosis_id>/', views.check_status, name='check_status'),
-    
+
     # Listar diagnósticos
     path('list/', views.diagnosis_list, name='diagnosis_list'),
 ]

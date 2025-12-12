@@ -16,10 +16,18 @@
             <a href="{% url 'users:user_dashboard' %}" style="color: var(--primary-color); text-decoration: none;">← Volver al dashboard</a>
         </div>
         <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-primary);">
-            🤖 Seleccionar Paciente
+            {% if request.user.rol == 'TECNICO_SALUD' %}
+                📸 Seleccionar Paciente para Diagnóstico
+            {% else %}
+                🤖 Seleccionar Paciente
+            {% endif %}
         </h1>
         <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-            Elige un paciente para solicitar un análisis de IA
+            {% if request.user.rol == 'TECNICO_SALUD' %}
+                Elige un paciente con imágenes para solicitar un análisis de IA
+            {% else %}
+                Elige un paciente para solicitar un análisis de IA
+            {% endif %}
         </p>
     </div>
 

@@ -1,0 +1,106 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/dashboard.css' %}">
+<style>
+    .notifications-card {
+        background: rgba(30, 41, 59, 0.7);
+        border-radius: 1.5rem;
+        padding: 2.5rem 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        max-width: 700px;
+        margin: 0 auto;
+        margin-top: 2rem;
+    }
+    .notifications-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .notifications-desc {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+    .notification-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .notification-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(15,23,42,0.18);
+        border-radius: 0.75rem;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--glass-border);
+        font-weight: 500;
+        color: var(--text-primary);
+        box-shadow: 0 2px 8px rgba(102,126,234,0.04);
+    }
+    .notification-item.unread {
+        background: rgba(102, 126, 234, 0.10);
+        font-weight: 700;
+    }
+    .notification-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+    }
+    .notification-actions .btn {
+        margin-left: 0.5rem;
+    }
+    .alert-info {
+        background: rgba(102, 126, 234, 0.12);
+        color: var(--primary-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.5rem;
+        margin-top: 1.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-container">
+        <div class="notifications-card">
+            <div class="notifications-title">🔔 Notificaciones</div>
+            <div class="notifications-desc">Consulta el estado de tus notificaciones y accede a los detalles de cada evento.</div>
+            {% if notifications and notifications|length > 0 %}
+                <ul class="notification-list">
+                    {% for notification in notifications %}
+                    <li class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                        <div>
+                            <span>{{ notification.message }}</span>
+                            <span class="badge badge-info" style="margin-left:0.75rem;">{{ notification.get_status_display }}</span>
+                            <span class="text-muted" style="margin-left:0.75rem; font-size:0.95em;">{{ notification.created_at|date:'d/m/Y H:i' }}</span>
+                        </div>
+                        <div class="notification-actions">
+                            {% if not notification.is_read %}
+                                <a href="{% url 'users:mark_notification_read' notification.id %}" class="btn btn-success btn-sm">Marcar como leída</a>
+                            {% endif %}
+                            <a href="{% url 'users:notification_detail' notification.id %}" class="btn btn-primary btn-sm">Ver detalles</a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <h3 class="empty-state-title">No hay notificaciones nuevas</h3>
+                    <p class="empty-state-description">Aún no tienes notificaciones recientes en el sistema.</p>
+                </div>
+            {% endif %}
+            <a href="{% url 'users:admin_dashboard' %}" class="btn btn-secondary" style="margin-top: 2rem;">← Volver al Panel de Administración</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

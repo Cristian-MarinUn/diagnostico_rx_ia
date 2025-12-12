@@ -1,53 +1,55 @@
 from django.urls import path
 from . import views
+from . import views_user_profile
+from . import views_admin_user_edit
+from . import views_deactivate_user
 from .views import Verify2FAView
+
 app_name = 'users'
 
 urlpatterns = [
+    # CU-023: Monitoreo de Actividad
+    path('monitoring/', views.monitoring_view, name='monitoring'),
+
+    # CU-024: Notificaciones de Estado
+    path('notifications/', views.notifications_view, name='notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/<int:notification_id>/detail/', views.notification_detail, name='notification_detail'),
+
+    # CU-017: Comparar Estudios
+    path('compare-studies/', views.compare_studies_view, name='compare_studies'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
+    # Perfil de usuario específico (solo admin)
+    path('profile/<int:user_id>/', views_user_profile.user_profile_view, name='user_profile'),
+    # Edición de usuario específico (solo admin)
+    path('edit/<int:user_id>/', views_admin_user_edit.admin_user_edit_view, name='admin_user_edit'),
+    # Desactivar usuario (AJAX)
+    path('deactivate_user/', views_deactivate_user.deactivate_user, name='deactivate_user'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('dashboard/user/', views.user_dashboard_view, name='user_dashboard'),
     path('dashboard/admin/', views.admin_dashboard_view, name='admin_dashboard'),
     path('dashboard/admin/user/create/', views.user_create_view, name='user_create'),
     path('dashboard/admin/list/', views.user_list_view, name='user_list'),
-    path('dashboard/patient/create/', views.patient_create_view, name='patient_create'),
 
-# ========== CU-006: Autenticación de Dos Factores ==========
-    path(
-        '2fa/verify/',
-        Verify2FAView.as_view(),
-        name='2fa-verify'
-    ),
-    
-    # TODO: Implement remaining 2FA views in views.py
-    # - Enable2FAView
-    # - Disable2FAView
-    # - Request2FACodeView
-    # - TwoFactorStatusView
-    # Once implemented, uncomment the URL patterns below:
-    
-    # path(
-    #     '2fa/enable/',
-    #     Enable2FAView.as_view(),
-    #     name='2fa-enable'
-    # ),
-    # path(
-    #     '2fa/disable/',
-    #     Disable2FAView.as_view(),
-    #     name='2fa-disable'
-    # ),
-    # path(
-    #     '2fa/request-code/',
-    #     Request2FACodeView.as_view(),
-    #     name='2fa-request-code'
-    # ),
-    # path(
-    #     '2fa/status/',
-    #     TwoFactorStatusView.as_view(),
-    #     name='2fa-status'
-    # ),
+
+    # CU-018: Búsqueda de Pacientes
+    path('search-patient/', views.search_patient_view, name='search_patient'),
+    path('patient/<int:patient_id>/', views.patient_detail_view, name='patient_detail'),
+    path('diagnosis/history/', views.diagnosis_history_view, name='diagnosis_history'),
+
+    # CU-006: Autenticación de Dos Factores
+    path('2fa/verify/', Verify2FAView.as_view(), name='2fa-verify'),
+
+    # CU-022: Gestión de Permisos de Acceso
+    path('dashboard/admin/permissions/', views.manage_permissions_view, name='manage_permissions'),
+    # CU-020: Reportes Estadísticos
+    path('reports/', views.reports_view, name='reports'),
+
+    # CU-014: Crear Paciente
+    path('patient/create/', views.patient_create_view, name='patient_create'),
+
+    # CU-013: Diagnóstico Asistido por IA
+    path('diagnosis/request/', views.request_diagnosis_ia_view, name='request_diagnosis_ia'),
 ]
-
-
